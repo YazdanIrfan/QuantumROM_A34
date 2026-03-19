@@ -1,4 +1,4 @@
-![QuantumROM Logo](QuantumROM/logo/QuantumROM.jpg)
+![QuantumROM Logo](QuantumROM/logo/quantum_a34_logo.jpg)
 
 ## 📌 Overview:
 This Custom ROM is built by combining and refining features from multiple projects, including UNICA, Legacy-UI, and AstroRom.
