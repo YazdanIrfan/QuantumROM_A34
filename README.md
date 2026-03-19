@@ -10,6 +10,9 @@ Download firmware directly from samsung server.
 - Extract and img build ( erofs and ext4 supported).
 
 ## ✨ Key Features:
+- High End Animation (Not Done by the Script).
+- Full Screen Always On Display.
+- AOD - LockScreen Clock Animation.
 - System Optimization.
 - Heavy debloated system (removed unnecessary apps & services).
 - Improved performance and smoother UI experience.
