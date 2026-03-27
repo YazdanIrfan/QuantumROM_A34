@@ -2,6 +2,7 @@
 
 ###################################################################################################
 
+RED="\e[31m"
 YELLOW="\e[33m"
 NC="\e[0m"
 
@@ -88,41 +89,49 @@ GET_PROP() {
 
 
 DOWNLOAD_FIRMWARE() {
-    if [ "$#" -ne 4 ]; then
-        echo -e "Usage: ${FUNCNAME[0]} <MODEL> <CSC> <IMEI> <DOWNLOAD_DIRECTORY>"
+    if [ "$#" -lt 4 ]; then
+        echo -e "Usage: ${FUNCNAME[0]} <MODEL> <CSC> <IMEI> <DOWNLOAD_DIRECTORY> [VERSION]"
         return 1
     fi
 
-    local MODEL=$1
-    local CSC=$2
-    local IMEI=$3
+    local MODEL="$1"
+    local CSC="$2"
+    local IMEI="$3"
     local DOWN_DIR="${4}/$MODEL"
+    local VERSION="${5:-}"
 
-	rm -rf "$DOWN_DIR"
+    rm -rf "$DOWN_DIR"
     mkdir -p "$DOWN_DIR"
 
     echo -e "======================================"
     echo -e "${YELLOW}  Samsung FW Downloader   ${NC}"
     echo -e "======================================"
     echo -e "MODEL: $MODEL | CSC: $CSC"
-    echo -e "- Fetching latest firmware..."
-    echo
 
-    # --- Step 1: Check Update ---
-    version=$(python3 -m samloader -m "$MODEL" -r "$CSC" -i "$IMEI" checkupdate 2>&1)
-    if [ $? -ne 0 ] || [ -z "$version" ]; then
-        echo -e "- ⛔️ MODEL/CSC/IMEI not valid or no update found."
-        echo -e "- Error: $version"
-        return 1
+    # --- Step 1: Determine Version ---
+    if [ -n "$VERSION" ]; then
+        echo -e "- ✅ Downloading provided version: $VERSION"
     else
-        echo -e "- ✅ Update found: $version"
+        echo -e "- Fetching latest firmware..."
+
+        VERSION=$(python3 -m samloader -m "$MODEL" -r "$CSC" -i "$IMEI" checkupdate 2>&1)
+
+        if [ $? -ne 0 ] || [ -z "$VERSION" ]; then
+            echo -e "- ⛔️ MODEL/CSC/IMEI not valid or no update found."
+            echo -e "- Error: $VERSION"
+            return 1
+        fi
+
+        echo -e "- ✅ Latest version found: $VERSION"
     fi
 
+    echo
+
     # --- Step 2: Download Firmware ---
-    python3 -m samloader -m "$MODEL" -r "$CSC" -i "$IMEI" download -v "$version" -O "$DOWN_DIR"
+    python3 -m samloader -m "$MODEL" -r "$CSC" -i "$IMEI" download -v "$VERSION" -O "$DOWN_DIR"
     if [ $? -ne 0 ]; then
         echo -e "- ⛔️ Download failed. Check IMEI/MODEL/CSC."
-        return 1
+        exit 1
     fi
 
     # --- Step 3: Decrypt Firmware ---
@@ -130,11 +139,11 @@ DOWNLOAD_FIRMWARE() {
 
     if [ -z "$enc_file" ]; then
         echo -e "- ⛔️ No encrypted firmware file found!"
-        return 1
+        exit 1
     fi
 
     python3 -m samloader -m "$MODEL" -r "$CSC" -i "$IMEI" decrypt \
-        -v "$version" \
+        -v "$VERSION" \
         -i "$enc_file" \
         -o "${DOWN_DIR}/${MODEL}.zip" >/dev/null 2>&1
 
@@ -145,8 +154,9 @@ DOWNLOAD_FIRMWARE() {
 
     # --- Show Firmware Info ---
     file_size=$(du -m "${DOWN_DIR}/${MODEL}.zip" | cut -f1)
+
     echo
-    echo -e "- ✅ Firmware decrypted successfully!. Firmware Size: ${file_size} MB"
+    echo -e "- ✅ Firmware decrypted successfully! Firmware Size: ${file_size} MB"
     echo -e "- Saved to: ${DOWN_DIR}/${MODEL}.zip"
 
     # --- Cleanup ---
@@ -253,7 +263,7 @@ PREPARE_PARTITIONS() {
     done
 
     echo -e "${YELLOW}Preparing partitinos.${NC} $STOCK_DEVICE"
-	
+
     find "$EXTRACTED_FIRM_DIR" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
 
     shopt -s nullglob dotglob
@@ -279,15 +289,18 @@ PREPARE_PARTITIONS() {
 
 EXTRACT_FIRMWARE_IMG() {
     echo -e ""
-	if [ "$#" -ne 1 ]; then
+
+    if [ "$#" -ne 1 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <FIRMWARE_DIRECTORY>"
         return 1
     fi
 
-	local FIRM_DIR="$1"
+    local FIRM_DIR="$1"
 
     PREPARE_PARTITIONS "$FIRM_DIR"
-	echo -e "${YELLOW}Extracting imges from:${NC} $FIRM_DIR"
+
+    echo -e "${YELLOW}Extracting images from:${NC} $FIRM_DIR"
+
     for imgfile in "$FIRM_DIR"/*.img; do
         [ -e "$imgfile" ] || continue
 
@@ -301,31 +314,44 @@ EXTRACT_FIRMWARE_IMG() {
 
         partition="$(basename "${imgfile%.img}")"
         fstype=$(blkid -o value -s TYPE "$imgfile")
+        [ -z "$fstype" ] && fstype=$(file -b "$imgfile")
 
         case "$fstype" in
             ext4)
                 IMG_SIZE=$(stat -c%s -- "$imgfile")
-				echo -e "- $partition.img Detected $fstype. Size: $IMG_SIZE bytes. Extracting..."
-				sudo rm -rf "$FIRM_DIR/$partition"
-                sudo python3 $(pwd)/bin/py_scripts/imgextractor.py "$imgfile" "$FIRM_DIR"
+                echo -e "- $partition.img Detected ext4. Size: $IMG_SIZE bytes. Extracting..."
+
+                sudo rm -rf "$FIRM_DIR/$partition"
+                sudo python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
                 ;;
+
             erofs)
                 IMG_SIZE=$(stat -c%s -- "$imgfile")
-				echo -e "- $partition.img Detected $fstype. Size: $IMG_SIZE bytes. Extracting..."
+                echo -e "- $partition.img Detected erofs. Size: $IMG_SIZE bytes. Extracting..."
+
+                sudo rm -rf "$FIRM_DIR/$partition"
+                sudo "$(pwd)/bin/erofs-utils/extract.erofs" -i "$imgfile" -x -f -o "$FIRM_DIR" >/dev/null 2>&1
+                ;;
+
+			f2fs)
+                IMG_SIZE=$(stat -c%s -- "$imgfile")
+                echo -e "- $partition.img Detected f2fs. Size: $IMG_SIZE bytes. Converting to ext4"
+				sudo bash "$(pwd)/scripts/convert_to_ext4.sh" "$imgfile"
+
 				sudo rm -rf "$FIRM_DIR/$partition"
-                sudo $(pwd)/bin/erofs-utils/extract.erofs -i "$imgfile" -x -f -o "$FIRM_DIR" >/dev/null 2>&1
+                sudo python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
                 ;;
             *)
-                echo -e "- $imgfile unsupported filesystem type ($fstype), exiting"
-                exit 1
+                echo -e "- $partition.img unsupported filesystem type ($fstype), skipping"
+                continue
                 ;;
         esac
     done
 
     rm -rf "$FIRM_DIR"/*.img
-	
-	if ! ls "$FIRM_DIR"/system* >/dev/null 2>&1; then
-        echo -e "Maybe your firmware is not downloaded, is corrupt, or contains an unsupported image."
+
+    if ! ls "$FIRM_DIR"/system* >/dev/null 2>&1; then
+        echo -e "❌ Firmware may be corrupt or unsupported."
         exit 1
     fi
 
@@ -395,9 +421,9 @@ INSTALL_FRAMEWORK() {
     fi
 
     echo -e ""
-    local framework_res_apk="$1"
+    local framework-res_apk="$1"
     echo -e "${YELLOW}Installing Framework.${NC}"
-    java -jar "$APKTOOL" install-framework "$framework_res_apk"
+    java -jar "$APKTOOL" install-framework "$framework-res_apk"
 }
 
 
@@ -416,7 +442,7 @@ DECOMPILE() {
 
     echo -e "${YELLOW}Decompiling:${NC} $FILE"
 	rm -rf "$OUT"
-    java -jar "$APKTOOL" d -f "$FILE" -o "$OUT"
+    java -jar "$APKTOOL" d --force --match-original "$FILE" -o "$OUT"
 }
 
 
@@ -457,15 +483,21 @@ REPLACE_SMALI_METHOD() {
     local METHOD_NAME="$2"
     local NEW_BODY=$(echo -e "$3" | tail -n +2)
 
-    # Escape special chars in method name for sed
-    local method_esc
-    method_esc=$(printf '%s\n' "$METHOD_NAME" | sed -e 's/[.[\*^$/]/\\&/g')
-
     echo -e "- Patching: $FILE"
+    echo -e "  Method: $METHOD_NAME"
+
+    if ! grep -Fq "$METHOD_NAME" "$FILE"; then
+        echo -e "- ${YELLOW}Method not found → Skipped${NC}"
+        return 0
+    fi
+
+    # Extract method key (safe match)
+    local METHOD_KEY
+    METHOD_KEY=$(echo "$METHOD_NAME" | sed -E 's/.* ([^ ]+\().*/\1/')
 
     sed -i "
-/^[[:space:]]*$method_esc\$/,/^[[:space:]]*\.end method/{
-    /^[[:space:]]*$method_esc\$/{
+/^[[:space:]]*\.method.*$METHOD_KEY/,/^[[:space:]]*\.end method/{
+    /^[[:space:]]*\.method/{
         p
         r /dev/stdin
         d
@@ -527,7 +559,9 @@ PATCH_FLAG_SECURE() {
 	# local METHOD_NAME_1=".method public isSecureLocked()Z"
 	# Only one method.
 
-	local FILE="${1}/smali_classes2/com/android/server/wm/WindowState.smali"
+    # https://github.com/ShaDisNX255/NcX_Stock/commit/c2cc85818df4fe040b4f89ca8f9b78e939b211b4
+    # https://forum.xda-developers.com/t/mods-samsung-not-android-mods-collection-exynos.3772017/post-86811691
+	local FILE_1="${1}/smali_classes2/com/android/server/wm/WindowState.smali"
     local METHOD_NAME_1=".method public final isSecureLocked()Z"
     local REPLACE_BODY_1='
     .locals 1
@@ -536,8 +570,9 @@ PATCH_FLAG_SECURE() {
 
     return v0
     '
-    REPLACE_SMALI_METHOD "$FILE" "$METHOD_NAME_1" "$REPLACE_BODY_1"
-    
+    REPLACE_SMALI_METHOD "$FILE_1" "$METHOD_NAME_1" "$REPLACE_BODY_1"
+  
+	local FILE_2="${1}/smali_classes2/com/android/server/wm/WindowManagerService.smali"
     local METHOD_NAME_2=".method public final notifyScreenshotListeners(I)Ljava/util/List;"
     local REPLACE_BODY_2='
     .locals 3
@@ -576,8 +611,8 @@ PATCH_FLAG_SECURE() {
     invoke-direct {p0, p1}, Ljava/lang/SecurityException;-><init>(Ljava/lang/String;)V
 
     throw p0
-'    
-    REPLACE_SMALI_METHOD "$FILE" "$METHOD_NAME_2" "$REPLACE_BODY_2"
+    '
+    REPLACE_SMALI_METHOD "$FILE_2" "$METHOD_NAME_2" "$REPLACE_BODY_2"
 }
 
 
@@ -589,28 +624,35 @@ PATCH_SECURE_FOLDER() {
     fi
 
     echo -e "${YELLOW}Patching secure folder.${NC}"
-    local FILE="${1}/smali/com/android/server/knox/dar/DarManagerService.smali"
-    # patch isDeviceRootKeyInstalled
-    local METHOD_NAME_1=".method public final isDeviceRootKeyInstalled()Z"
+
+	#https://forum.xda-developers.com/t/mods-samsung-not-android-mods-collection-exynos.3772017/post-86770885
+	local FILE_1="${1}/smali/com/android/server/knox/dar/DarManagerService.smali"
+	local METHOD_NAME_1=".method public final checkDeviceIntegrity([Ljava/security/cert/Certificate;)Z"
+	local METHOD_NAME_2=".method public final isDeviceRootKeyInstalled()Z"
+    local METHOD_NAME_3=".method public final isKnoxKeyInstallable()Z"
+    
     local REPLACE_BODY_1='
     .locals 0
-
-    const/4 v0, 0x1
-
-    return v0
+ 
+    const/4 p0, 0x1
+ 
+    return p0
     '
-    REPLACE_SMALI_METHOD "$FILE" "$METHOD_NAME_1" "$REPLACE_BODY_1"
 
-    # patch isKnoxKeyInstallable
-    local METHOD_NAME_2=".method public final isKnoxKeyInstallable()Z"
+    REPLACE_SMALI_METHOD "$FILE_1" "$METHOD_NAME_1" "$REPLACE_BODY_1"
+    REPLACE_SMALI_METHOD "$FILE_1" "$METHOD_NAME_2" "$REPLACE_BODY_1"
+	REPLACE_SMALI_METHOD "$FILE_1" "$METHOD_NAME_3" "$REPLACE_BODY_1"
+
+    local FILE_2="${1}/smali/com/android/server/StorageManagerService.smali"
+    local METHOD_NAME_4=".method public static isRootedDevice()Z"
     local REPLACE_BODY_2='
-    .locals 0
-
-    const/4 v0, 0x1
-
+    .locals 1
+ 
+    const/4 v0, 0x0
+ 
     return v0
     '
-    REPLACE_SMALI_METHOD "$FILE" "$METHOD_NAME_2" "$REPLACE_BODY_2"
+    REPLACE_SMALI_METHOD "$FILE_2" "$METHOD_NAME_4" "$REPLACE_BODY_2"
 }
 
 
@@ -723,21 +765,40 @@ UPDATE_SDHMS() {
 
 PATCH_SSRM() {
     echo -e ""
-	if [ "$#" -ne 1 ]; then
+
+    if [ "$#" -ne 1 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_SSRM_DIRECTORY>"
         return 1
     fi
 
     local SSRM_DIR="$1"
-	local FILE="$SSRM_DIR/smali/com/android/server/ssrm/Feature.smali"
+    local FILE="$SSRM_DIR/smali/com/android/server/ssrm/Feature.smali"
 
-	echo -e "${YELLOW}Patching ssrm.jar${NC}"
-	echo -e "- Patching: $FILE"
+    echo -e "${YELLOW}Patching ssrm${NC}"
+    echo -e "- Patching: $FILE"
 
-    sed -i "s/\(const-string v[0-9]\+,\s*\"\)siop_[^\"]*\"/\1$STOCK_SIOP_FILENAME\"/g" "$FILE"
-    sed -i "/dvfs_policy_default/! s/\(const-string v[0-9]\+,\s*\"\)dvfs_policy_[^\"]*\"/\1$STOCK_DVFS_FILENAME\"/g" "$FILE"
+    if [ ! -f "$FILE" ]; then
+        echo -e "- ${RED}File not found! Skipping...${NC}"
+        return 1
+    fi
 
-    # UPDATE_SDHMS "$FIRM_DIR/$TARGET_DEVICE"
+    if grep -Eq 'const-string v[0-9]+, "siop_' "$FILE"; then
+        echo -e "- Found siop_ → Replacing"
+        sed -i 's/\(const-string v[0-9]\+,\s*"\)siop_[^"]*"/\1'"$STOCK_SIOP_FILENAME"'"/g' "$FILE"
+    else
+        echo -e "- siop filename not found → Skipped"
+    fi
+
+    if grep -Eq 'const-string v[0-9]+, "dvfs_policy_[^"]*_[^"]*"' "$FILE"; then
+        echo -e "- Found dvfs_policy_*_* → Replacing"
+
+        sed -i '/dvfs_policy_default/! {
+            s/\(const-string v[0-9]\+,\s*"\)dvfs_policy_[^"]*_[^"]*"/\1'"$STOCK_DVFS_FILENAME"'"/g
+        }' "$FILE"
+
+    else
+        echo -e "- dvfs_policy file name not found → Skipped"
+    fi
 }
 
 
@@ -1019,7 +1080,7 @@ APPLY_CUSTOM_FLOATING_FEATURE() {
 
     #========== SCREEN RECORDER ==========#
     UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_FRAMEWORK_SUPPORT_SCREEN_RECORDER" "TRUE"
-	
+
 	#========== VOICE RECORDER ==========#
     UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_VOICERECORDER_CONFIG_DEF_MODE" "normal,interview,voicememo"
 
@@ -1367,11 +1428,11 @@ DISABLE_SECURITY() {
     if [ -f "$EXTRACTED_FIRM_DIR/product/etc/build.prop" ]; then
         BUILD_PROP "$EXTRACTED_FIRM_DIR" "product" "ro.frp.pst" ""
     fi
-	
+
 	if [ -f "$EXTRACTED_FIRM_DIR/vendor/build.prop" ]; then
 		BUILD_PROP "$EXTRACTED_FIRM_DIR" "vendor" "ro.frp.pst" ""
     fi
-	
+
     if [ -f "$EXTRACTED_FIRM_DIR/vendor/recovery-from-boot.p" ]; then
         rm -rf "$EXTRACTED_FIRM_DIR/vendor/recovery-from-boot.p"
     fi

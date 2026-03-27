@@ -136,10 +136,10 @@ In your forked repository, go to:
 - SSRM Patch (from UN1CA)
 - Some SELinux patches followed the UN1CA implementation.
 
-#### 5. Bootanimation fix.
--  ExtremeXT
--  https://github.com/ExtremeXT
-- For bootanimation then reboot bug fix.
+#### 5. App optimization stuck fix.
+- ExtremeXT
+- https://github.com/ExtremeXT
+- For app optimization stuck fix.
 
 #### 6. Google photos unlimited backup.
 - VehanRajintha

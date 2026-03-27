@@ -41,12 +41,21 @@ jobs:
       - name: Checkout repository.
         uses: actions/checkout@v4
 
-      - name: Cleaning junk files
+      - name: Validate STOCK_DEVICE
+        run: |
+          STOCK_DEVICE="${{ github.event.inputs.STOCK_DEVICE }}"
+          DEVICE_PATH="QuantumROM/Devices/$STOCK_DEVICE"
+          if [ "$STOCK_DEVICE" != "None" ] && [ ! -d "$DEVICE_PATH" ]; then
+            echo "❌ $STOCK_DEVICE is not supported with this tool."
+            exit 1
+          fi
+
+      - name: Remove unnecessary files.
         uses: rokibhasansagar/slimhub_actions@v25.42.5
 
       - name: Install Dependencies.
         run: |
-          sudo apt install -y p7zip-full lz4 android-sdk-libsparse-utils python3 python3-pip zipalign unzip e2fsprogs openjdk-17-jdk jq >/dev/null 2>&1
+          sudo apt install -y p7zip-full lz4 android-sdk-libsparse-utils f2fs-tools fuse2fs fuse e2fsprogs python3 python3-pip zipalign unzip openjdk-17-jdk jq >/dev/null 2>&1
           pip3 install git+https://github.com/martinetd/samloader.git >/dev/null 2>&1
           bash scripts/setup_directories.sh FIRMWARE WORK OUT
 
@@ -65,13 +74,13 @@ jobs:
             "${{ github.event.inputs.TARGET_DEVICE_IMEI }}" \
             "${{ github.event.inputs.OUTPUT_FILESYSTEM }}"
 
-      - name: Compress *.img & make zip file before upload.
+      - name: Compress all .img & make zip file before upload.
         run: |
           echo "BUILD_TIME=$(TZ='Asia/Dhaka' date '+%Y-%m-%d %I:%M:%S %p UTC+6')" >> $GITHUB_ENV
           OUT_DIR="$(pwd)/OUT"
           ZIP_NAME="${{ github.event.inputs.TARGET_DEVICE }}_Port_For_${{ github.event.inputs.STOCK_DEVICE }}.zip"
           ZIP_PATH="$OUT_DIR/$ZIP_NAME"
-    
+
           if [ "${{ github.event.inputs.COMPRESS_IMG_TO_XZ }}" = "True" ]; then
             echo "Compressing all .img files to .xz (level 9)..."
             for img in "$OUT_DIR"/*.img; do
@@ -81,7 +90,7 @@ jobs:
             done
             sudo rm -f "$OUT_DIR"/*.img
           fi
-  
+
           echo "Creating zip: $ZIP_NAME"
           7z a -tzip "$ZIP_PATH" "$OUT_DIR"/* -mx=5
           echo "ZIP_PATH=$ZIP_PATH" >> $GITHUB_ENV
@@ -96,6 +105,6 @@ jobs:
           USE_UI_8_TETHERING_APEX: ${{ github.event.inputs.USE_UI_8_TETHERING_APEX }}
         run: |
            bash release.sh
-  
+
       - name: Clean everything.
         run: sudo rm -rf *
