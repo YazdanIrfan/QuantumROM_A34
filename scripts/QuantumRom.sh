@@ -421,28 +421,37 @@ INSTALL_FRAMEWORK() {
     fi
 
     echo -e ""
-    local framework-res_apk="$1"
-    echo -e "${YELLOW}Installing Framework.${NC}"
-    java -jar "$APKTOOL" install-framework "$framework-res_apk"
+    local framework_apk="$1"
+    echo -e "${YELLOW}Installing $framework_apk ${NC}"
+    java -jar "$APKTOOL" install-framework "$framework_apk"
 }
 
 
 DECOMPILE() {
     echo -e ""
-    if [ "$#" -ne 3 ]; then
-        echo -e "Usage: DECOMPILE <APKTOOL_JAR_DIR> <FILE> <DECOMPILE_DIR>"
+    if [ "$#" -ne 4 ]; then
+        echo -e "Usage: DECOMPILE <APKTOOL_JAR_DIR> <FRAMEWORK_DIR> <FILE> <DECOMPILE_DIR>"
         return 1
     fi
 
-    local APKTOOL="$1"
-    local FILE="$2"
-    local DECOMPILE_DIR="$3"
+    # apktool version-3
+	# d = decompile
+	# --force = force delete target decompile directory before decompile
+	# --no-src = don't decompile dex file
+	# --no-res = don't decode resources
+	# --match-original = decompile everything as original
+	# --frame-path = framework path
+	# -o = decompile directory
+	local APKTOOL="$1"
+	local FRAMEWORK_DIR="$2"
+    local FILE="$3"
+    local DECOMPILE_DIR="$4"
     local BASENAME="$(basename "${FILE%.*}")"
     local OUT="$DECOMPILE_DIR/$BASENAME"
 
     echo -e "${YELLOW}Decompiling:${NC} $FILE"
 	rm -rf "$OUT"
-    java -jar "$APKTOOL" d --force --match-original "$FILE" -o "$OUT"
+    java -jar "$APKTOOL" d --force --frame-path "$FRAMEWORK_DIR" --match-original "$FILE" -o "$OUT"
 }
 
 
@@ -453,9 +462,14 @@ RECOMPILE() {
         return 1
     fi
 
+    # apktool version-3
+	# b = recompile
+	# --copy-original = use original manifest
+	# --frame-path = framework path
+	# -o = output /recompile file directory with filename
 	local APKTOOL="$1"
-	local DECOMPILED_DIR="$2"
-    local FRAMEWORK_DIR="$3"
+	local FRAMEWORK_DIR="$2"
+	local DECOMPILED_DIR="$3"
     local RECOMPILE_DIR="$4"
 
     local org_file_name
@@ -466,7 +480,7 @@ RECOMPILE() {
     local final_file="$WORK_DIR/$org_file_name"
 
     echo -e "${YELLOW}Recompiling:${NC} $DECOMPILED_DIR"
-    java -jar "$APKTOOL" b "$DECOMPILED_DIR" --copy-original -p "$FRAMEWORK_DIR" -o "$built_file"
+    java -jar "$APKTOOL" b "$DECOMPILED_DIR" --copy-original --frame-path "$FRAMEWORK_DIR" -o "$built_file"
 
     # Zipalign
 	echo -e ""
@@ -1334,7 +1348,7 @@ DEBLOAT() {
     rm -rf "$EXTRACTED_FIRM_DIR/product/app/Maps/oat"
 	rm -rf "$EXTRACTED_FIRM_DIR/product/app/SpeechServicesByGoogle/oat"
 	rm -rf "$EXTRACTED_FIRM_DIR/product/app/YouTube/oat"
-	rm -rf "$EXTRACTED_FIRM_DIR/product/priv-app"/HotwordEnrollmentXGoogle*
+	rm -rf "$EXTRACTED_FIRM_DIR/product/priv-app"/HotwordEnrollment*
 }
 
 
@@ -1525,6 +1539,8 @@ APPLY_CUSTOM_FEATURES() {
 
 	# Remove power and data usage permissions for certain apps when Power Saver and Data Saver are always enabled.
 	# sed -i '/^[[:space:]]*<allow-in-power-save/d; /^[[:space:]]*<allow-in-data-usage-save/d' "$EXTRACTED_FIRM_DIR/product/etc/sysconfig/"*.xml "$EXTRACTED_FIRM_DIR/system/system/etc/sysconfig/"*.xml
+	sudo chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR"
+    sudo chmod -R u+rwX "$EXTRACTED_FIRM_DIR"
 }
 
 

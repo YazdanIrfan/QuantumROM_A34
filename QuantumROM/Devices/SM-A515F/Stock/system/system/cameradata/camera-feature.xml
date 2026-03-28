@@ -18,7 +18,7 @@
     
     <!-- Capture resolution - BACK -->
     <local name="BACK_CAMERA_RESOLUTION_FULL_RATIO" value="4000x1800" />
-    <local name="BACK_CAMERA_RESOLUTION_4BY3_LARGE" value="8000x6000" /> 
+    <local name="BACK_CAMERA_RESOLUTION_4BY3_LARGE" value="4000x3000" /> 
     <local name="BACK_CAMERA_RESOLUTION_4BY3_MEDIUM" value="4000x3000" />
     <local name="BACK_CAMERA_RESOLUTION_16BY9_LARGE" value="4000x2250" />
     <local name="BACK_CAMERA_RESOLUTION_16BY9_MEDIUM" value="4000x2250" />
