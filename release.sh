@@ -18,7 +18,7 @@ FILE_SIZE=$(du -h "$ZIP_PATH" | cut -f1)
 MD5_SUM=$(md5sum "$ZIP_PATH" | awk '{print $1}')
 
 # Release body
-RELEASE_BODY="#### 📦 Download:
+RELEASE_BODY="#### 🌎 Download:
 $GOFILE_LINK
 
 #### 📊 File Info:
