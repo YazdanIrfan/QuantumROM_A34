@@ -28,11 +28,8 @@
 	
 	<!-- Capture resolution - BACK WIDE -->
     <local name="BACK_WIDE_CAMERA_RESOLUTION_4BY3_LARGE" value="2576x1932" />
-    <local name="BACK_WIDE_CAMERA_RESOLUTION_4BY3_MEDIUM" value="2576x1932" />
     <local name="BACK_WIDE_CAMERA_RESOLUTION_16BY9_LARGE" value="2560x1440" />
-    <local name="BACK_WIDE_CAMERA_RESOLUTION_16BY9_MEDIUM" value="2560x1440" />
     <local name="BACK_WIDE_CAMERA_RESOLUTION_1BY1_LARGE" value="1920x1920" />
-    <local name="BACK_WIDE_CAMERA_RESOLUTION_1BY1_MEDIUM" value="1920x1920" />
     <local name="BACK_WIDE_CAMERA_RESOLUTION_FULL_RATIO" value="2560x1184" />
 	
 	<!-- Capture resolution - BACK MACRO -->
@@ -62,7 +59,6 @@
     <local name="BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_1440X1440" value="true" hdr="false" hdr10="false" preview-size="1440x1440" snapshot-support="true" snapshot-size="3056x3056" vdis="false" super-vdis="false" effect="true" object-tracking="false" external-storage-support="true"/>
     <local name="BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_1440X1080" value="false" hdr="true" hdr10="false" preview-size="1440x1080" snapshot-support="true" snapshot-size="4080x3060" vdis="false" super-vdis="false" effect="true" object-tracking="false" external-storage-support="true"/>
     <local name="BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_1920X888" value="true" hdr="true" hdr10="false" preview-size="1920x888" snapshot-support="true" snapshot-size="4080x1884" vdis="false" super-vdis="false" effect="true" object-tracking="false" external-storage-support="true"/>
-    <local name="BACK_CAMCORDER_RESOLUTION_FEATURE_MAP_176X144" value="true"/>
 	
     <!-- Recording resolution - FRONT -->
     <local name="FRONT_CAMERA_RECORDING_DEFAULT_RESOLUTION" value="1920x1080"/>
@@ -86,15 +82,9 @@
     <local name="REAL_PREVIEW_SIZE_4_3" value="1440x1080" />
 	
 	<!-- Filters/Beauty features-->
-    <local name="SUPPORT_LIVE_BEAUTY_IN_AUTO_MODE" value="true"/>
-    <local name="SUPPORT_LIVE_BEAUTY_MANUAL_RESHAPE" value="false"/>
-    <local name="SUPPORT_SMART_BEAUTY_GLOBAL" value="true"/>
     <local name="SUPPORT_LIVE_BEAUTY_SHAPE_CORRECTION" value="false"/>
-    <local name="SUPPORT_BEAUTY_BRIGHTEN" value="true"/>
     <local name="SUPPORT_IPP_EFFECT_CAPTURE_IN_CORE2" value="true"/>
     <local name="SUPPORT_MY_FILTER" value="true" />
-    <local name="SUPPORT_LIVE_BEAUTY_SKIN_COLOR" value="false" />
-    <local name="SUPPORT_POST_PICTURE_PROCESSING" value="true"/>
 
     <!-- Multi-camera features -->
     <local name="BACK_WIDE_CAMERA_ID" value="50"/>
@@ -104,7 +94,6 @@
 	<local name="SUPPORT_FUN_MODE_LITE" value="true" />
 	
 	<!-- Live focus & bokeh -->
-    <local name="SUPPORT_BOKEH_FOCUSED_REGION" value="true"/>
     <local name="SUPPORT_DUAL_BOKEH_EFFECT" value="false"/>
     <local name="SUPPORT_SINGLE_BOKEH_EFFECT" value="false"/>
     <local name="SUPPORT_BACK_WIDE_NORMAL_DUAL_PORTRAIT" value="true"/>
@@ -113,13 +102,8 @@
 	
 	<!-- Intelligent features -->
     <local name="SUPPORT_INTELLIGENT_RECOGNITION_TIPS" value="true" />
-    <local name="SUPPORT_INTELLIGENT_GUIDE_TIPS" value="true" />
     <local name="SUPPORT_SCENE_OPTIMIZER_WITH_3_4H" value="false" />
-    <local name="SUPPORT_ADDITIONAL_EFFECTS_WITH_SCENE_DETECTION" value="false" />
-    <local name="SUPPORT_SCENE_DETECTION_LITE" value="false" />
-    <local name="SUPPORT_ADDITIONAL_SCENE_BRIGHT_NIGHT" value="false" />
     <local name="SUPPORT_FRONT_PHOTO_NIGHT" value="true" />
-    <local name="SUPPORT_QR_CODE_DETECTION" value="true" />
 	
 	<!-- Photo features -->
     <local name="SUPPORT_MOTION_PHOTO" value="false" />
@@ -140,36 +124,24 @@
     <!-- Special Features --> 
     <local name="SUPPORT_TAP_AND_HOLD_CAMERA_BUTTON" value="true" />
     <local name="CAMERA_QUICK_LAUNCH_USING_POWER_KEY" value="true"/>
-    <local name="SUPPORT_AUTO_WATERMARK" value="true" />
-    <local name="CAMERA_AUTO_WATERMARK_NUMBER_OF_CAMERAS" value="4" />
     <local name="SUPPORT_LIVE_BLUR" value="false"/>
-    <local name="SUPPORT_WATERMARK_IN_SUPER_LARGE_RESOLUTION" value="true" />
-    <local name="SUPPORT_LEVEL_METER" value="true"/>
-    <local name="CAMERA_BACKGROUND_OPEN_WHEN_BOOTING" value="true" />
-    <local name="SUPPORT_INCREASE_DVFS_TIME_IN_LOW_MEMORY" value="true"/>
 	<!-- Special Features - Camera Settings -->
     <local name="SUPPORT_HEIF_FORMAT" value="true"/>
     <local name="FRONT_CAMERA_PREVIEW_FPS_MIN" value="8" />
     <local name="CAMERA_PREVIEW_FPS_MIN" value="10" />
-    <local name="SUPPORT_ADVANCED_RECORDING_OPTIONS" value="false"/>
     <local name="SUPPORT_AUTO_HDR_MENU" value="true" />
-    <local name="SUPPORT_FLOATING_CAMERA_BUTTON" value="true"/>
 	<!-- Special Features - Capture -->
     <local name="MAX_BURST_CAPTURE_COUNT" value="30" />
     <local name="MAX_POST_PROCESSING_COUNT_FOR_CAPTURE" value="3" />
     <local name="SUPPORT_QUICK_TAKE" value="true" />
 
 	<!-- Display cutout info -->
-	<local name="DISPLAY_CUTOUT_ANIMATION_INFO" num-of-display-cutout="1" display-cutout-0-type="2" display-cutout-0-left="155" display-cutout-0-top="0" display-cutout-0-right="205" display-cutout-0-bottom="35"/>
     <local name="DISPLAY_CUTOUT_POSITION" value="1" />
     
 	<!-- VDIS+Tracking AF -->
     <local name="SUPPORT_OBJECT_TRACKING_AF" value="false" />
-    <local name="SUPPORT_VIDEO_PALM_DETECTION" value="true"/>
     <local name="SUPPORT_SUPER_VIDEO_STABILIZATION" value="false" />
     <local name="SUPPORT_VDIS_CENTER_CROP_FOR_PREVIEW_RECORDING" value="false" />
-    <local name="SUPPORT_FAST_REACTIVE_AF" value="false" />
-    <local name="SUPPORT_DIVIDE_AE_AF" value="true" />
 	
 	<!-- Pro/Pro video features -->
     <local name="SUPPORT_MULTI_AF" value="false"/>
@@ -183,7 +155,6 @@
 	
 	<!-- Panorama features -->
     <local name="SUPPORT_PANORAMA_LENS_TYPE_CHANGE" value="true" />
-    <local name="PANORAMA_LOW_PERFORMANCE" value="true" />
 	
 	<!-- Slow Motion features -->
     <local name="SLOW_MOTION_RECORDING_FPS" value="120" />
@@ -203,9 +174,7 @@
     <!-- Performance -->
     <local name="SUPPORT_LAZY_BOOT_COMPLETE_LOW_PERFORMANCE" value="true"/>
     <local name="SUPPORT_CLEAN_UP_TEMP_FILE_ON_BACKGROUND" value="true"/>
-    <local name="LOW_PERFORMANCE_RECORDING_VI" value="true" />
     <local name="SUPPORT_CAMERA_APP_ENTRY_PERFORMANCE" value="true" />
-    <local name="USE_KEY_SCREEN_INFLATION_DELAY" value="true" />
 	<local name="SUPPORT_SEND_ACTIVE_APP_LAUNCH_GALLERY_BROADCAST" value="true"/>
 
     <!-- temporary enable for QC -->

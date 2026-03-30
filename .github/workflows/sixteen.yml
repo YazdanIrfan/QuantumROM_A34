@@ -30,7 +30,7 @@ on:
       COMPRESS_IMG_TO_XZ:
         description: "Compress IMG to XZ (True/False)"
         required: true
-        default: "True"
+        default: "False"
 
 jobs:
   build:
