@@ -231,7 +231,7 @@ EXTRACT_FIRMWARE() {
         simg2img "$FIRM_DIR/super.img" "$FIRM_DIR/super_raw.img"
         rm -f "$FIRM_DIR/super.img"
 
-        sudo "$(pwd)/bin/lp/lpunpack" "$FIRM_DIR/super_raw.img" "$FIRM_DIR"
+        "$(pwd)/bin/lp/lpunpack" "$FIRM_DIR/super_raw.img" "$FIRM_DIR"
         rm -f "$FIRM_DIR/super_raw.img"
 
         echo -e "- Extraction complete"
@@ -321,25 +321,25 @@ EXTRACT_FIRMWARE_IMG() {
                 IMG_SIZE=$(stat -c%s -- "$imgfile")
                 echo -e "- $partition.img Detected ext4. Size: $IMG_SIZE bytes. Extracting..."
 
-                sudo rm -rf "$FIRM_DIR/$partition"
-                sudo python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
+                rm -rf "$FIRM_DIR/$partition"
+                python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
                 ;;
 
             erofs)
                 IMG_SIZE=$(stat -c%s -- "$imgfile")
                 echo -e "- $partition.img Detected erofs. Size: $IMG_SIZE bytes. Extracting..."
 
-                sudo rm -rf "$FIRM_DIR/$partition"
-                sudo "$(pwd)/bin/erofs-utils/extract.erofs" -i "$imgfile" -x -f -o "$FIRM_DIR" >/dev/null 2>&1
+                rm -rf "$FIRM_DIR/$partition"
+                "$(pwd)/bin/erofs-utils/extract.erofs" -i "$imgfile" -x -f -o "$FIRM_DIR" >/dev/null 2>&1
                 ;;
 
 			f2fs)
                 IMG_SIZE=$(stat -c%s -- "$imgfile")
                 echo -e "- $partition.img Detected f2fs. Size: $IMG_SIZE bytes. Converting to ext4"
-				sudo bash "$(pwd)/scripts/convert_to_ext4.sh" "$imgfile"
+				bash "$(pwd)/scripts/convert_to_ext4.sh" "$imgfile"
 
-				sudo rm -rf "$FIRM_DIR/$partition"
-                sudo python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
+				rm -rf "$FIRM_DIR/$partition"
+                python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
                 ;;
             *)
                 echo -e "- $partition.img unsupported filesystem type ($fstype), skipping"
@@ -355,8 +355,8 @@ EXTRACT_FIRMWARE_IMG() {
         exit 1
     fi
 
-    sudo chown -R "$REAL_USER:$REAL_USER" "$FIRM_DIR"
-    sudo chmod -R u+rwX "$FIRM_DIR"
+    chown -R "$REAL_USER:$REAL_USER" "$FIRM_DIR"
+    chmod -R u+rwX "$FIRM_DIR"
 }
 
 
@@ -1541,8 +1541,8 @@ APPLY_CUSTOM_FEATURES() {
 
 	# Remove power and data usage permissions for certain apps when Power Saver and Data Saver are always enabled.
 	# sed -i '/^[[:space:]]*<allow-in-power-save/d; /^[[:space:]]*<allow-in-data-usage-save/d' "$EXTRACTED_FIRM_DIR/product/etc/sysconfig/"*.xml "$EXTRACTED_FIRM_DIR/system/system/etc/sysconfig/"*.xml
-	sudo chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR"
-    sudo chmod -R u+rwX "$EXTRACTED_FIRM_DIR"
+	chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR"
+    chmod -R u+rwX "$EXTRACTED_FIRM_DIR"
 	
 	if [ -d "$(pwd)/QuantumROM/usefull_things" ]; then
         cp -a "$(pwd)/QuantumROM/usefull_things/." "$(pwd)/OUT"
