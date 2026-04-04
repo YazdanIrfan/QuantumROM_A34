@@ -105,9 +105,6 @@ DEBLOAT() {
 	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/MediaSearch"
 	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app"/GameDriver-*
 	rm -rf "$EXTRACTED_FIRM_DIR/system/system/tts"
-	rm -rf "$EXTRACTED_FIRM_DIR/product/app/Gmail2/oat"
-    rm -rf "$EXTRACTED_FIRM_DIR/product/app/Maps/oat"
 	rm -rf "$EXTRACTED_FIRM_DIR/product/app/SpeechServicesByGoogle/oat"
-	rm -rf "$EXTRACTED_FIRM_DIR/product/app/YouTube/oat"
 	rm -rf "$EXTRACTED_FIRM_DIR/product/priv-app"/HotwordEnrollment*
 }
