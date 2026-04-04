@@ -1113,6 +1113,7 @@ APPLY_CUSTOM_FLOATING_FEATURE() {
 
     #========== LAUNCHER ==========#
     UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_LAUNCHER_SUPPORT_CLOCK_LIVE_ICON" "TRUE"
+	UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_LAUNCHER_CONFIG_ANIMATION_TYPE" "HighEnd"
 
     #========== AOD ==========#
 	if [ -d "$FIRM_DIR/$TARGET_DEVICE/system/system/priv-app"/AODService_* ]; then
@@ -1132,6 +1133,7 @@ APPLY_CUSTOM_FLOATING_FEATURE() {
     UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_SMART_LASSO" "TRUE"
     UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_SPOT_FIXER" "TRUE"
     UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_STYLE_TRANSFER" "TRUE"
+	UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_TIME_WEATHER_WALLPAPER" "TRUE"
 }
 
 
@@ -1388,14 +1390,6 @@ APPLY_CUSTOM_FEATURES() {
     BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.hwui.renderer" "skiavk"
 	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.telephony.sim_slots.count" "2"
     BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.surface_flinger.protected_contents" "true"
-
-	echo -e "- Adding China smart manager."
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/AppLock"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/Firewall"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/SmartManager_v5"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/SmartManagerCN"
-	cp -rfa "$(pwd)/QuantumROM/Mods/SMART_MANAGER_CN/." "$EXTRACTED_FIRM_DIR/"
-	UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_SMARTMANAGER_CONFIG_PACKAGE_NAME" "com.samsung.android.sm_cn"
 
 	echo -e "- Adding full OneUI and important apps."
 	if [ ! -d "$EXTRACTED_FIRM_DIR/product/priv-app/AiWallpaper" ]; then
