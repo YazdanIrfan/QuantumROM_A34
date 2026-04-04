@@ -11,7 +11,7 @@ This Custom ROM is built by combining and refining features from multiple projec
 
 ### ✨ Key Features.
 - System Optimization.
-- Heavy debloated system (removed unnecessary apps & services).
+- Moderately debloated system (Kept essencial Features for full One UI expereince).
 - Improved performance and smoother UI experience.
 - Optimized background processes.
 - Better battery efficiency.
@@ -19,11 +19,12 @@ This Custom ROM is built by combining and refining features from multiple projec
 - Screenshot anywhere (enabled globally).
 - Built-in Screen Recorder.
 - More floating features enabled.
+- HighEnd Animation.
 - Edge features fully working.
 - Stock device conig always be added.
 - Extra brightness support.
 - Object, shadow and reflection remover support.
-- Multi user support.
+- Multi user support.(Works on Some Device)
 - Camera privacy toggle support.
 - Private share patch.
 - Google photos unlimited backup.
@@ -38,7 +39,7 @@ This Custom ROM is built by combining and refining features from multiple projec
 ### 📱 One UI Experience.
 - Full One UI apps included.
 - Important system apps preserved.
-- China Smart Manager support.
+- Goble Device Manager.
 - AI features enabled.
 
 ### 🎯 Project Goal.
