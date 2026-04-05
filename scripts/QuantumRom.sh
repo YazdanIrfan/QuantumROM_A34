@@ -921,65 +921,50 @@ ADD_SYSTEM_EXT_IN_SYSTEM_ROOT() {
 
     local EXTRACTED_FIRM_DIR="$1"
 
-	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ] && [ -d "$EXTRACTED_FIRM_DIR/system_ext" ]; then
-        export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system_ext"
-		return 1
-	fi
+    echo -e "- Copying system_ext content into system root"
+    rm -rf "$EXTRACTED_FIRM_DIR/system/system_ext"
+    mv "$EXTRACTED_FIRM_DIR/system_ext" "$EXTRACTED_FIRM_DIR/system"
 
-    if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ] && [[ -d "$EXTRACTED_FIRM_DIR/system_ext" ]]; then
-        echo -e "- Copying system_ext content into system root"
-		rm -rf "$EXTRACTED_FIRM_DIR/system/system_ext"
-        cp -a --preserve=all "$EXTRACTED_FIRM_DIR/system_ext" "$EXTRACTED_FIRM_DIR/system"
+    echo -e "- Cleaning and merging system_ext file contexts and configs"
+    # File paths
+    SYSTEM_EXT_CONFIG_FILE="$EXTRACTED_FIRM_DIR/config/system_ext_fs_config"
+    SYSTEM_EXT_CONTEXTS_FILE="$EXTRACTED_FIRM_DIR/config/system_ext_file_contexts"
 
-        echo -e "- Cleaning and merging system_ext file contexts and configs"
-        # File paths
-        SYSTEM_EXT_CONFIG_FILE="$EXTRACTED_FIRM_DIR/config/system_ext_fs_config"
-        SYSTEM_EXT_CONTEXTS_FILE="$EXTRACTED_FIRM_DIR/config/system_ext_file_contexts"
+    SYSTEM_CONFIG_FILE="$EXTRACTED_FIRM_DIR/config/system_fs_config"
+    SYSTEM_CONTEXTS_FILE="$EXTRACTED_FIRM_DIR/config/system_file_contexts"
 
-        SYSTEM_CONFIG_FILE="$EXTRACTED_FIRM_DIR/config/system_fs_config"
-        SYSTEM_CONTEXTS_FILE="$EXTRACTED_FIRM_DIR/config/system_file_contexts"
+    SYSTEM_EXT_TEMP_CONFIG="${SYSTEM_EXT_CONFIG_FILE}.tmp"
+    SYSTEM_EXT_TEMP_CONTEXTS="${SYSTEM_EXT_CONTEXTS_FILE}.tmp"
 
-        SYSTEM_EXT_TEMP_CONFIG="${SYSTEM_EXT_CONFIG_FILE}.tmp"
-        SYSTEM_EXT_TEMP_CONTEXTS="${SYSTEM_EXT_CONTEXTS_FILE}.tmp"
+    # Clean system_ext contexts
+    grep -v '^/ u:object_r:system_file:s0$' "$SYSTEM_EXT_CONTEXTS_FILE" \
+    | grep -v '^/system_ext u:object_r:system_file:s0$' \
+    | grep -v '^/system_ext(.*)? u:object_r:system_file:s0$' \
+    | grep -v '^/system_ext/ u:object_r:system_file:s0$' \
+    > "$SYSTEM_EXT_TEMP_CONTEXTS" && mv "$SYSTEM_EXT_TEMP_CONTEXTS" "$SYSTEM_EXT_CONTEXTS_FILE"
 
-        # Clean system_ext contexts
-        grep -v '^/ u:object_r:system_file:s0$' "$SYSTEM_EXT_CONTEXTS_FILE" \
-        | grep -v '^/system_ext u:object_r:system_file:s0$' \
-        | grep -v '^/system_ext(.*)? u:object_r:system_file:s0$' \
-        | grep -v '^/system_ext/ u:object_r:system_file:s0$' \
-        > "$SYSTEM_EXT_TEMP_CONTEXTS" && mv "$SYSTEM_EXT_TEMP_CONTEXTS" "$SYSTEM_EXT_CONTEXTS_FILE"
+    # Clean system_ext config
+    grep -v '^/ 0 0 0755$' "$SYSTEM_EXT_CONFIG_FILE" \
+    | grep -v '^system_ext/ 0 0 0755$' \
+    | grep -v '^system_ext/lost+found 0 0 0755$' \
+    > "$SYSTEM_EXT_TEMP_CONFIG" && mv "$SYSTEM_EXT_TEMP_CONFIG" "$SYSTEM_EXT_CONFIG_FILE"
 
-        # Clean system_ext config
-        grep -v '^/ 0 0 0755$' "$SYSTEM_EXT_CONFIG_FILE" \
-        | grep -v '^system_ext/ 0 0 0755$' \
-        | grep -v '^system_ext/lost+found 0 0 0755$' \
-        > "$SYSTEM_EXT_TEMP_CONFIG" && mv "$SYSTEM_EXT_TEMP_CONFIG" "$SYSTEM_EXT_CONFIG_FILE"
+    # Fix system_ext config
+    awk '{print "system/" $0}' "$SYSTEM_EXT_CONFIG_FILE" \
+    > "$SYSTEM_EXT_TEMP_CONFIG" && mv "$SYSTEM_EXT_TEMP_CONFIG" "$SYSTEM_EXT_CONFIG_FILE"
 
-        # Fix system_ext config
-        awk '{print "system/" $0}' "$SYSTEM_EXT_CONFIG_FILE" \
-        > "$SYSTEM_EXT_TEMP_CONFIG" && mv "$SYSTEM_EXT_TEMP_CONFIG" "$SYSTEM_EXT_CONFIG_FILE"
+    # Fix system_ext contexts
+    awk '{print "/system" $0}' "$SYSTEM_EXT_CONTEXTS_FILE" \
+    > "$SYSTEM_EXT_TEMP_CONTEXTS" && mv "$SYSTEM_EXT_TEMP_CONTEXTS" "$SYSTEM_EXT_CONTEXTS_FILE"
 
-        # Fix system_ext contexts
-        awk '{print "/system" $0}' "$SYSTEM_EXT_CONTEXTS_FILE" \
-        > "$SYSTEM_EXT_TEMP_CONTEXTS" && mv "$SYSTEM_EXT_TEMP_CONTEXTS" "$SYSTEM_EXT_CONTEXTS_FILE"
+    # Append cleaned system_ext config into system config
+    cat "$SYSTEM_EXT_CONFIG_FILE" >> "$SYSTEM_CONFIG_FILE"
 
-        # Append cleaned system_ext config into system config
-        cat "$SYSTEM_EXT_CONFIG_FILE" >> "$SYSTEM_CONFIG_FILE"
+    # Append cleaned system_ext contexts into system contexts
+    cat "$SYSTEM_EXT_CONTEXTS_FILE" >> "$SYSTEM_CONTEXTS_FILE"
 
-        # Append cleaned system_ext contexts into system contexts
-        cat "$SYSTEM_EXT_CONTEXTS_FILE" >> "$SYSTEM_CONTEXTS_FILE"
-
-		export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system_ext"
-
-	    rm -rf "$EXTRACTED_FIRM_DIR/system_ext"
-        rm -rf "$EXTRACTED_FIRM_DIR"/config/system_ext*
-    else
-        if [ -d "$EXTRACTED_FIRM_DIR/system/system_ext/apex" ]; then
-            export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system_ext"
-        elif [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
-            export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system/system_ext"
-        fi
-    fi
+    rm -rf "$EXTRACTED_FIRM_DIR"/config/system_ext*
+    export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system_ext"
 }
 
 
@@ -990,64 +975,76 @@ SEPERATE_SYSTEM_EXT() {
     fi
 
     local EXTRACTED_FIRM_DIR="$1"
-	chmod a+rw "$EXTRACTED_FIRM_DIR/config"/*
-	
-	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ] && [ -d "$EXTRACTED_FIRM_DIR/system_ext" ]; then
+
+	echo "- Separating system_ext"
+    mv "$EXTRACTED_FIRM_DIR/system/system/system_ext" "$EXTRACTED_FIRM_DIR/"
+	ln -s /system_ext $EXTRACTED_FIRM_DIR/system/system/system_ext
+	rm -rf "$EXTRACTED_FIRM_DIR/system/system_ext"
+	mkdir "$EXTRACTED_FIRM_DIR/system/system_ext"
+
+    SYSTEM_FS_CONFIG="$EXTRACTED_FIRM_DIR/config/system_fs_config"
+	SYSTEM_FILE_CONTEXTS="$EXTRACTED_FIRM_DIR/config/system_file_contexts"
+    
+	SYSTEM_EXT_FS_CONFIG="$EXTRACTED_FIRM_DIR/config/system_ext_fs_config"
+	SYSTEM_EXT_FILE_CONTEXTS="$EXTRACTED_FIRM_DIR/config/system_ext_file_contexts"
+
+    # Process system_ext_file_contexts
+    if grep -q '^/system/system/system_ext' "$SYSTEM_FILE_CONTEXTS"; then
+        grep '^/system/system/system_ext' "$SYSTEM_FILE_CONTEXTS" > "$SYSTEM_EXT_FILE_CONTEXTS"
+        sed -i '\|^/system/system/system_ext|d' "$SYSTEM_FILE_CONTEXTS"
+        awk '{sub(/^\/system\/system\/system_ext/, "/system_ext"); print}' "$SYSTEM_EXT_FILE_CONTEXTS" > "$SYSTEM_EXT_FILE_CONTEXTS.tmp"  && \
+        mv "$SYSTEM_EXT_FILE_CONTEXTS.tmp" "$SYSTEM_EXT_FILE_CONTEXTS"
+
+        # Add object context line if missing
+		grep -qxF '/system/system_ext u:object_r:system_file:s0' "$SYSTEM_FILE_CONTEXTS" || echo '/system/system_ext u:object_r:system_file:s0' >> "$SYSTEM_FILE_CONTEXTS"
+		grep -qxF '/system/system/system_ext u:object_r:system_file:s0' "$SYSTEM_EXT_FILE_CONTEXTS" || echo '/system/system/system_ext u:object_r:system_file:s0' >> "$SYSTEM_EXT_FILE_CONTEXTS"
+
+        grep -qxF '/ u:object_r:system_file:s0' "$SYSTEM_EXT_FILE_CONTEXTS" || echo '/ u:object_r:system_file:s0' >> "$SYSTEM_EXT_FILE_CONTEXTS"
+		sort -u "$SYSTEM_EXT_FILE_CONTEXTS" -o "$SYSTEM_EXT_FILE_CONTEXTS"
+    fi
+
+    # Process system_ext_fs_config
+    if grep -q '^system/system/system_ext' "$SYSTEM_FS_CONFIG"; then
+        grep '^system/system/system_ext' "$SYSTEM_FS_CONFIG" > "$SYSTEM_EXT_FS_CONFIG"
+        sed -i '\|^system/system/system_ext|d' "$SYSTEM_FS_CONFIG"
+        awk '{sub(/^system\/system\/system_ext/, "system_ext"); print}' "$SYSTEM_EXT_FS_CONFIG" > "$SYSTEM_EXT_FS_CONFIG.tmp" &&  \
+	    mv "$SYSTEM_EXT_FS_CONFIG.tmp" "$SYSTEM_EXT_FS_CONFIG"
+
+        # Add default fs permissions if missing
+        grep -qxF 'system/system_ext 0 0 0755' "$SYSTEM_FS_CONFIG" || echo 'system/system_ext 0 0 0755' >> "$SYSTEM_FS_CONFIG"
+		grep -qxF 'system/system/system_ext 0 0 0644' "$SYSTEM_FS_CONFIG" || echo 'system/system/system_ext 0 0 0644' >> "$SYSTEM_FS_CONFIG"
+
+        grep -qxF '/ 0 0 0755' "$SYSTEM_EXT_FS_CONFIG" || echo '/ 0 0 0755' >> "$SYSTEM_EXT_FS_CONFIG"
+        grep -qxF 'system_ext/ 0 0 0755' "$SYSTEM_EXT_FS_CONFIG" || echo 'system_ext/ 0 0 0755' >> "$SYSTEM_EXT_FS_CONFIG"
+		sort -u "$SYSTEM_EXT_FS_CONFIG" -o "$SYSTEM_EXT_FS_CONFIG"
+    fi
+
+    export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system_ext"
+}
+
+
+ADJUST_SYSTEM_EXT() {
+    if [ "$#" -ne 1 ]; then
+        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
+        return 1
+    fi
+
+    local EXTRACTED_FIRM_DIR="$1"
+
+	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ] && [ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]; then
         export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system_ext"
 		return 1
 	fi
 
     if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ] && [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
-        echo "- Separating system_ext"
-        mv "$EXTRACTED_FIRM_DIR/system/system/system_ext" "$EXTRACTED_FIRM_DIR/"
-	    ln -s /system_ext $EXTRACTED_FIRM_DIR/system/system/system_ext
-	    rm -rf "$EXTRACTED_FIRM_DIR/system/system_ext"
-	    mkdir "$EXTRACTED_FIRM_DIR/system/system_ext"
-
-        SYSTEM_FS_CONFIG="$EXTRACTED_FIRM_DIR/config/system_fs_config"
-	    SYSTEM_FILE_CONTEXTS="$EXTRACTED_FIRM_DIR/config/system_file_contexts"
-    
-	    SYSTEM_EXT_FS_CONFIG="$EXTRACTED_FIRM_DIR/config/system_ext_fs_config"
-	    SYSTEM_EXT_FILE_CONTEXTS="$EXTRACTED_FIRM_DIR/config/system_ext_file_contexts"
-
-        # Process system_ext_file_contexts
-        if grep -q '^/system/system/system_ext' "$SYSTEM_FILE_CONTEXTS"; then
-            grep '^/system/system/system_ext' "$SYSTEM_FILE_CONTEXTS" > "$SYSTEM_EXT_FILE_CONTEXTS"
-            sed -i '\|^/system/system/system_ext|d' "$SYSTEM_FILE_CONTEXTS"
-            awk '{sub(/^\/system\/system\/system_ext/, "/system_ext"); print}' "$SYSTEM_EXT_FILE_CONTEXTS" > "$SYSTEM_EXT_FILE_CONTEXTS.tmp"  && \
-            mv "$SYSTEM_EXT_FILE_CONTEXTS.tmp" "$SYSTEM_EXT_FILE_CONTEXTS"
-
-            # Add object context line if missing
-		    grep -qxF '/system/system_ext u:object_r:system_file:s0' "$SYSTEM_FILE_CONTEXTS" || echo '/system/system_ext u:object_r:system_file:s0' >> "$SYSTEM_FILE_CONTEXTS"
-		    grep -qxF '/system/system/system_ext u:object_r:system_file:s0' "$SYSTEM_EXT_FILE_CONTEXTS" || echo '/system/system/system_ext u:object_r:system_file:s0' >> "$SYSTEM_EXT_FILE_CONTEXTS"
-
-            grep -qxF '/ u:object_r:system_file:s0' "$SYSTEM_EXT_FILE_CONTEXTS" || echo '/ u:object_r:system_file:s0' >> "$SYSTEM_EXT_FILE_CONTEXTS"
-        fi
-
-        # Process system_ext_fs_config
-        if grep -q '^system/system/system_ext' "$SYSTEM_FS_CONFIG"; then
-            grep '^system/system/system_ext' "$SYSTEM_FS_CONFIG" > "$SYSTEM_EXT_FS_CONFIG"
-            sed -i '\|^system/system/system_ext|d' "$SYSTEM_FS_CONFIG"
-            awk '{sub(/^system\/system\/system_ext/, "system_ext"); print}' "$SYSTEM_EXT_FS_CONFIG" > "$SYSTEM_EXT_FS_CONFIG.tmp" &&  \
-			mv "$SYSTEM_EXT_FS_CONFIG.tmp" "$SYSTEM_EXT_FS_CONFIG"
-
-            # Add default fs permissions if missing
-		    grep -qxF 'system/system_ext 0 0 0755' "$SYSTEM_FS_CONFIG" || echo 'system/system_ext 0 0 0755' >> "$SYSTEM_FS_CONFIG"
-		    grep -qxF 'system/system/system_ext 0 0 0644' "$SYSTEM_FS_CONFIG" || echo 'system/system/system_ext 0 0 0644' >> "$SYSTEM_FS_CONFIG"
-
-            grep -qxF '/ 0 0 0755' "$SYSTEM_EXT_FS_CONFIG" || echo '/ 0 0 0755' >> "$SYSTEM_EXT_FS_CONFIG"
-            grep -qxF 'system_ext/ 0 0 0755' "$SYSTEM_EXT_FS_CONFIG" || echo 'system_ext/ 0 0 0755' >> "$SYSTEM_EXT_FS_CONFIG"
-        fi
-
-	    sort -u "$SYSTEM_EXT_FS_CONFIG" -o "$SYSTEM_EXT_FS_CONFIG"
-        sort -u "$SYSTEM_EXT_FILE_CONTEXTS" -o "$SYSTEM_EXT_FILE_CONTEXTS"
-
-		export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system_ext"
-    fi
-
-    chmod a+rw "$EXTRACTED_FIRM_DIR/config"/*
+	    SEPERATE_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
+	fi
+	
+	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ] && [[ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]]; then
+	    ADD_SYSTEM_EXT_IN_SYSTEM_ROOT
+	fi
 }
-
+	
 
 FIX_SELINUX() {
     if [ "$#" -ne 1 ]; then
@@ -1285,8 +1282,7 @@ APPLY_STOCK_CONFIG() {
 	export DEVICE_TYPE="$(awk -F'[<>]' '$2 == "SEC_FLOATING_FEATURE_COMMON_CONFIG_DEVICE_MANUFACTURING_TYPE" {print $3}' "$STOCK_FLOATING_FEATURE")"
 
 	# ADJUST SYSTEM_EXT PARTITION.
-	SEPERATE_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
-    ADD_SYSTEM_EXT_IN_SYSTEM_ROOT "$EXTRACTED_FIRM_DIR"
+    ADJUST_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
 
 	# FIX VNDK.
 	FIX_VNDK
