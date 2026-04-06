@@ -1,74 +1,56 @@
 ![QuantumROM Logo](QuantumROM/logo/quantum_a34_logo.jpg)
 
-# Custom One UI ROM
+## 📌 Overview.
+This Custom ROM is built by combining and refining features from multiple projects, including UNICA, Legacy-UI, and AstroRom.
+- The goal of this ROM is to provide a clean, optimized, and stable One UI experience with enhanced usability and performance.
 
-A clean, optimized, and stable Samsung One UI experience.
+### 🛠️ Tools features.
+- Download firmware directly from samsung server.
+- File config and file contexts generate.
+- Extract and img build ( erofs and ext4 supported).
 
----
+### ✨ Key Features.
+- System Optimization.
+- Galaxy AI enabled (Across all Galaxy Apps).
+- Google photos unlimited backup.
+- Full Screen Always On Display (With User Toggle).
+- Screenshot anywhere (enabled globally).
+- High End Animation.
+- Heavy debloated system (Keeping Essential Apps and Services).
+- Improved performance and smoother UI experience.
+- Optimized background processes.
+- Better battery efficiency.
+- Built-in Screen Recorder.
+- Additional floating features enabled.
+- Edge features fully working.
+- Stock device conig added.
+- Extra brightness support.
+- Object, shadow and reflection remover support added.
+- Multi user support.
+- Camera privacy toggle support.
+- Private share patch.
+- JDM device support.
+- [BluetoothLibraryPatcher](https://github.com/3arthur6/BluetoothLibraryPatcher) integrated
 
-## ✨ Features
+### 🔐 Security & Privacy.
+- Secure Folder support.
+- Essential security components retained.
+- Stable and safe daily-driver experience.
 
-- Smooth, high-quality animations  
-- Galaxy AI enabled  
-- Improved performance and responsiveness  
-- Better battery efficiency  
-- Clean debloated system (essentials preserved)  
-- Full-screen Always-On Display (toggle)  
-- Screenshot anywhere  
-- Built-in screen recorder  
-- Edge features fully working  
-- Extra brightness support  
-- Multi-user support (device-dependent)  
-- Secure Folder support  
-- Camera privacy toggle  
-- Private Share support  
-- Google Photos unlimited backup  
+### 📱 One UI Experience.
+- Full One UI apps included.
+- Important system apps preserved.
+- China Smart Manager support.
+- AI features enabled.
 
----
+### 🎯 Project Goal.
+- To deliver a lightweight yet fully featured Samsung One UI ROM that balances.
+- Performance.
+- Stability.
+- Essential Features.
+- Clean User Experience.
 
-## 📌 Overview
-
-Built by refining elements from UNICA, Legacy-UI, and AstroRom.  
-Focused on delivering a balanced One UI experience with stability, performance, and essential features.
-
----
-
-## 🛠️ Tools
-
-- Firmware download from Samsung servers  
-- Auto config & file context generation  
-- EROFS and EXT4 support  
-
----
-
-## 🎯 Goal
-
-A lightweight ROM that prioritizes:
-- Stability  
-- Performance  
-- Clean user experience  
-
----
-
-## 📦 Installation
-
-1. Wipe Data / Cache / Dalvik  
-2. Flash ROM  
-3. Reboot  
-
----
-
-## ⚠️ Notes
-
-- First boot may take time  
-- Clean flash recommended  
-
----
-
-## Credits
-
-UNICA • Legacy-UI • AstroRom
-
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 ## How to Use:
 #### 1. Fork the Repository.
