@@ -903,8 +903,9 @@ FIX_VNDK() {
     echo -e "- Checking $STOCK_DEVICE and $TARGET_DEVICE vndk version."
     export SDK="$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.build.version.sdk_full)"
 	echo -e "- Target rom SDK version: $SDK"
+	echo -e "- Stock device vndk version: $STOCK_VNDK_VERSION"
     if [ -f "$TARGET_ROM_SYSTEM_EXT_DIR/apex/com.android.vndk.v${STOCK_VNDK_VERSION}.apex" ]; then
-        echo -e "- VNDK matched."
+        echo -e "- VNDK matched. $TARGET_ROM_SYSTEM_EXT_DIR/apex/com.android.vndk.v${STOCK_VNDK_VERSION}.apex"
     else
         echo -e "- VNDK mismatch. Adding SDK $SDK com.android.vndk.v${STOCK_VNDK_VERSION}.apex"
         rm -rf "$TARGET_ROM_SYSTEM_EXT_DIR/apex/"*.apex
@@ -1039,9 +1040,13 @@ ADJUST_SYSTEM_EXT() {
     if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ] && [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
 	    SEPERATE_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
 	fi
-	
+
 	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ] && [[ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]]; then
 	    ADD_SYSTEM_EXT_IN_SYSTEM_ROOT "$EXTRACTED_FIRM_DIR"
+	fi
+
+	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ] && [[ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]]; then
+	    export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system/system_ext"
 	fi
 }
 
@@ -1074,14 +1079,14 @@ FIX_SELINUX() {
             return 1
         fi
 
-        STOCK_VNDK_VERSION=$(grep -oP '(?<=<version>)[0-9]+' "$MANIFEST_FILE" | head -n1)
+        TARGET_ROM_VNDK_VERSION=$(grep -oP '(?<=<version>)[0-9]+' "$MANIFEST_FILE" | head -n1)
 
-        if [ -z "$STOCK_VNDK_VERSION" ]; then
+        if [ -z "$TARGET_ROM_VNDK_VERSION" ]; then
             echo -e "- Failed to extract VNDK version from manifest."
             return 1
         fi
 
-        SELINUX_FILE="$TARGET_ROM_SYSTEM_EXT_DIR/etc/selinux/mapping/${STOCK_VNDK_VERSION}.0.cil"
+        SELINUX_FILE="$TARGET_ROM_SYSTEM_EXT_DIR/etc/selinux/mapping/${TARGET_ROM_VNDK_VERSION}.0.cil"
     fi
 
     echo -e "- Using SELinux mapping file: $SELINUX_FILE"
