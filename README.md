@@ -40,7 +40,6 @@ This Custom ROM is built by combining and refining features from multiple projec
 ### 📱 One UI Experience.
 - Full One UI apps included.
 - Important system apps preserved.
-- China Smart Manager support.
 - AI features enabled.
 
 ### 🎯 Project Goal.
