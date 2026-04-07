@@ -1505,6 +1505,59 @@ APPLY_CUSTOM_FEATURES() {
     fi
 }
 
+#APPLYING Live Blur to UI
+APPLY_BLUR_FIX() {
+    local ROM_DIR="$1"
+
+    echo "[*] Applying Blur Fix..."
+
+    # Detect correct system path
+    if [ -d "$ROM_DIR/system/system" ]; then
+        SYSTEM_DIR="$ROM_DIR/system/system"
+    else
+        SYSTEM_DIR="$ROM_DIR/system"
+    fi
+
+    # Create required dirs
+    mkdir -p "$SYSTEM_DIR/bin"
+    mkdir -p "$SYSTEM_DIR/lib64"
+    mkdir -p "$SYSTEM_DIR/etc"
+
+    # Copy binaries and libs
+    cp -f QuantumROM/Mods/Blur_Fix/system/bin/surfaceflinger "$SYSTEM_DIR/bin/"
+    cp -f QuantumROM/Mods/Blur_Fix/system/lib64/libgui.so "$SYSTEM_DIR/lib64/"
+    cp -f QuantumROM/Mods/Blur_Fix/system/lib64/libui.so "$SYSTEM_DIR/lib64/"
+
+    # Set correct permissions
+    chmod 755 "$SYSTEM_DIR/bin/surfaceflinger"
+    chmod 644 "$SYSTEM_DIR/lib64/libgui.so"
+    chmod 644 "$SYSTEM_DIR/lib64/libui.so"
+
+	# Optional but safer
+	chcon u:object_r:system_file:s0 "$SYSTEM_DIR/bin/surfaceflinger" 2>/dev/null || true
+	chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libgui.so" 2>/dev/null || true
+	chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libui.so" 2>/dev/null || true
+	
+
+    echo "[*] Blur binaries placed in $SYSTEM_DIR"
+
+    # Floating feature patch
+    FLOATING_FEATURE="$SYSTEM_DIR/etc/floating_feature.xml"
+
+    if [ -f "$FLOATING_FEATURE" ]; then
+        echo "[*] Patching floating_feature.xml..."
+
+        sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG/d' "$FLOATING_FEATURE"
+
+        sed -i '/<\/SecFloatingFeatureSet>/i \
+    <SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG>TRUE</SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG>' "$FLOATING_FEATURE"
+
+        echo "[*] Floating feature patched."
+    else
+        echo "[WARNING] floating_feature.xml not found at $FLOATING_FEATURE"
+    fi
+}
+
 
 GEN_FS_CONFIG() {
     if [ "$#" -ne 1 ]; then
