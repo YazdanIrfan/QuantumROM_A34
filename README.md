@@ -11,6 +11,7 @@ This Custom ROM is built by combining and refining features from multiple projec
 
 ### ✨ Key Features.
 - System Optimization.
+- UI Live Blur
 - Galaxy AI enabled (Across all Galaxy Apps).
 - Google photos unlimited backup.
 - Full Screen Always On Display (With User Toggle).
