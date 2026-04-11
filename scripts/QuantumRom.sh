@@ -193,6 +193,10 @@ EXTRACT_FIRMWARE() {
         fi
     done
 
+	rm -rf "$FIRM_DIR"/BL_*.tar.md5
+	rm -f "$FIRM_DIR"/CP_*.tar.md5
+	rm -f "$FIRM_DIR"/CSC_*.tar.md5
+
     # ---- XZ ----
     for file in "$FIRM_DIR"/*.xz; do
         if [ -f "$file" ]; then
@@ -912,8 +916,7 @@ PATCH_BT_LIB() {
 FIX_VNDK() {
     echo -e "- Checking $STOCK_DEVICE and $TARGET_DEVICE vndk version."
     export SDK="$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.build.version.sdk_full)"
-	echo -e "- Target rom SDK version: $SDK"
-	echo -e "- Stock device vndk version: $STOCK_VNDK_VERSION"
+	echo "- Target rom SDK version: $SDK"
     if [ -f "$TARGET_ROM_SYSTEM_EXT_DIR/apex/com.android.vndk.v${STOCK_VNDK_VERSION}.apex" ]; then
         echo -e "- VNDK matched. $TARGET_ROM_SYSTEM_EXT_DIR/apex/com.android.vndk.v${STOCK_VNDK_VERSION}.apex"
     else
@@ -979,7 +982,7 @@ ADD_SYSTEM_EXT_IN_SYSTEM_ROOT() {
 }
 
 
-SEPERATE_SYSTEM_EXT() {
+SEPARATE_SYSTEM_EXT() {
     if [ "$#" -ne 1 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
         return 1
@@ -1036,28 +1039,34 @@ SEPERATE_SYSTEM_EXT() {
 
 ADJUST_SYSTEM_EXT() {
     if [ "$#" -ne 1 ]; then
-        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
+        echo "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
         return 1
     fi
 
     local EXTRACTED_FIRM_DIR="$1"
 
-	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ] && [ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]; then
-        export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system_ext"
-		return 1
-	fi
+    if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ]; then
+        echo "- STOCK_HAS_SEPARATE_SYSTEM_EXT: $STOCK_HAS_SEPARATE_SYSTEM_EXT"
 
-    if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ] && [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
-	    SEPERATE_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
-	fi
+        if [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
+            export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system/system_ext"
 
-	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ] && [[ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]]; then
-	    ADD_SYSTEM_EXT_IN_SYSTEM_ROOT "$EXTRACTED_FIRM_DIR"
-	fi
+        elif [ -d "$EXTRACTED_FIRM_DIR/system/system_ext/apex" ]; then
+            export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system_ext"
+			
+		elif [ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]; then
+		    ADD_SYSTEM_EXT_IN_SYSTEM_ROOT "$EXTRACTED_FIRM_DIR"
+        fi
 
-	if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ] && [[ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]]; then
-	    export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system/system_ext"
-	fi
+	elif [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ]; then
+        echo "STOCK_HAS_SEPARATE_SYSTEM_EXT: $STOCK_HAS_SEPARATE_SYSTEM_EXT"
+
+        if [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
+            SEPARATE_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
+        fi
+    fi
+
+    echo "- TARGET_ROM_SYSTEM_EXT_DIR set to: $TARGET_ROM_SYSTEM_EXT_DIR"
 }
 
 
@@ -1397,6 +1406,7 @@ APPLY_STOCK_CONFIG() {
     	export STOCK_DVFS_FILENAME="$(grep -m1 '^STOCK_DVFS_FILENAME=' "$DEVICES_DIR/$STOCK_DEVICE/config" | cut -d= -f2 | tr -d '\r')"
     fi
 
+	echo "- Stock device vndk version: $STOCK_VNDK_VERSION"
     export STOCK_ROM_FLOATING_FEATURE="$DEVICES_DIR/$STOCK_DEVICE/floating_feature.xml"
 	export STOCK_SIOP_POLICY_FILENAME="$(awk -F'[<>]' '$2 == "SEC_FLOATING_FEATURE_SYSTEM_CONFIG_SIOP_POLICY_FILENAME" {print $3}' "$STOCK_ROM_FLOATING_FEATURE" | tr -d '\r' | xargs)"
 	export STOCK_DEVICE_TYPE="$(awk -F'[<>]' '$2 == "SEC_FLOATING_FEATURE_COMMON_CONFIG_DEVICE_MANUFACTURING_TYPE" {print $3}' "$STOCK_ROM_FLOATING_FEATURE")"
