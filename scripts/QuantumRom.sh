@@ -1640,22 +1640,20 @@ APPLY_CUSTOM_FEATURES() {
 APPLY_BLUR_FIX() {
     local ROM_DIR="$1"
 
-    echo "[*] Applying Optimized Live Blur Fix (Dimensity 1080 tuned)..."
+    echo "[*] Applying Stable Optimized Live Blur..."
 
-    # Detect correct system path
     if [ -d "$ROM_DIR/system/system" ]; then
         SYSTEM_DIR="$ROM_DIR/system/system"
     else
         SYSTEM_DIR="$ROM_DIR/system"
     fi
 
-    # Create required dirs
     mkdir -p "$SYSTEM_DIR/bin"
     mkdir -p "$SYSTEM_DIR/lib64"
     mkdir -p "$SYSTEM_DIR/etc"
 
     #########################################################
-    # COPY ORIGINAL BLUR FILES (UNCHANGED BASE)
+    # KEEP YOUR ORIGINAL BLUR FILES
     #########################################################
 
     cp -f QuantumROM/Mods/Blur_Fix/system/bin/surfaceflinger "$SYSTEM_DIR/bin/"
@@ -1670,17 +1668,13 @@ APPLY_BLUR_FIX() {
     chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libgui.so" 2>/dev/null || true
     chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libui.so" 2>/dev/null || true
 
-    echo "[*] Blur binaries placed."
-
     #########################################################
-    # FLOATING FEATURE OPTIMIZATION (MID QUALITY + DYNAMIC)
+    # FLOATING FEATURE (MID SAFE)
     #########################################################
 
     FLOATING_FEATURE="$SYSTEM_DIR/etc/floating_feature.xml"
 
     if [ -f "$FLOATING_FEATURE" ]; then
-        echo "[*] Optimizing floating features..."
-
         sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG/d' "$FLOATING_FEATURE"
         sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_DYNAMIC_RANGE/d' "$FLOATING_FEATURE"
         sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY/d' "$FLOATING_FEATURE"
@@ -1693,60 +1687,37 @@ APPLY_BLUR_FIX() {
 
         sed -i '/<\/SecFloatingFeatureSet>/i \
     <SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY>MID</SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY>' "$FLOATING_FEATURE"
-
-        echo "[*] Floating features optimized."
-    else
-        echo "[WARNING] floating_feature.xml not found."
     fi
 
     #########################################################
-    # PERFORMANCE + SMOOTHNESS TUNING
+    # SAFE PERFORMANCE TUNING (NO BOOTLOOP)
     #########################################################
-
-    echo "[*] Applying performance tuning..."
 
     cat <<EOF >> "$SYSTEM_DIR/build.prop"
 
-# ==============================
-# LIVE BLUR OPTIMIZATION (A34)
-# ==============================
+# ===== SAFE BLUR OPTIMIZATION =====
 
-# Frame pacing (main jitter fix)
+# Frame stability (safe)
 debug.sf.latch_unsignaled=1
-debug.sf.disable_backpressure=1
-debug.sf.use_phase_offsets_as_durations=1
 
-# Smooth transitions
-debug.sf.early_phase_offset_ns=500000
-debug.sf.early_gl_phase_offset_ns=300000
-debug.sf.frame_rate_multiple_threshold=120
-
-# BufferQueue stability
+# Buffer stability
 debug.sf.max_frame_buffer_acquired_buffers=3
-debug.sf.min_frame_buffer_acquired_buffers=1
 
-# GPU load balancing
+# GPU assist
 debug.sf.enable_hwc_vds=1
-debug.sf.skip_empty_damage=1
 
-# HWUI rendering optimization
+# HWUI safe tuning
 debug.hwui.renderer=skiagl
-debug.hwui.use_buffer_age=false
 debug.hwui.target_cpu_time_percent=60
-debug.hwui.target_gpu_time_percent=75
+debug.hwui.target_gpu_time_percent=70
 
-# Blur optimization (critical for MID quality)
+# Blur optimization
 debug.hwui.blur_reduce_ops=true
-debug.hwui.blur_cache_size=32
-debug.hwui.texture_cache_size=80
-
-# Thermal + sustained performance
-ro.surface_flinger.max_frame_buffer_acquired_buffers=2
-ro.surface_flinger.running_without_sync_framework=true
+debug.hwui.blur_cache_size=24
 
 EOF
 
-    echo "[✓] Optimized Live Blur applied successfully!"
+    echo "[✓] Stable Live Blur Optimization Applied"
 }
 
 
