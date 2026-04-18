@@ -7,18 +7,18 @@ set -e
 # GitHub automatically provides: GITHUB_REPOSITORY
 
 TAG_NAME="${TARGET_DEVICE}-$(date +%s)"
-RELEASE_NAME="${TARGET_DEVICE} Port For ${STOCK_DEVICE}"
+RELEASE_NAME="Quantum ROM V1.x.x for ${TARGET_DEVICE}"
 
 echo "Uploading to GoFile..."
 GOFILE_LINK=$(sudo bash upload.sh "$ZIP_PATH")
-echo "🌎 File uploaded here: $GOFILE_LINK"
+echo "File uploaded at: $GOFILE_LINK"
 
 # File info
 FILE_SIZE=$(du -h "$ZIP_PATH" | cut -f1)
 MD5_SUM=$(md5sum "$ZIP_PATH" | awk '{print $1}')
 
 # Release body
-RELEASE_BODY="#### 🌎 Download:
+RELEASE_BODY="#### Download link:
 $GOFILE_LINK
 
 #### 📊 File Info:
