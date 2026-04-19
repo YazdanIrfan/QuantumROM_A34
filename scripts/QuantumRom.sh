@@ -1636,6 +1636,147 @@ APPLY_CUSTOM_FEATURES() {
 }
 
 
+DOWNLOAD_GALAXY_AI_APPS() {
+    echo -e ""
+    echo -e "${YELLOW}Downloading Galaxy AI apps package.${NC}"
+
+    local GALAXY_AI_DIR="$(pwd)/QuantumROM/Mods/GalaxyAI"
+    local ZIP_NAME="GalaxyAI_Apps.zip"
+
+    # ⚠️ Replace YOUR_USERNAME and YOUR_REPO with your actual GitHub details
+    local DOWNLOAD_URL="https://github.com/YazdanIrfan/QuantumROM_A34/releases/download/galaxy-ai-apps/$ZIP_NAME"
+    local ZIP_PATH="$(pwd)/$ZIP_NAME"
+
+    # Skip if already extracted
+    if [ -d "$GALAXY_AI_DIR/system/system/priv-app/AODService_v80" ] && \
+       [ -d "$GALAXY_AI_DIR/system/system/app/SamsungAiCore" ]; then
+        echo -e "- Galaxy AI apps already present. Skipping download."
+        return 0
+    fi
+
+    # Download
+    echo -e "- Downloading $ZIP_NAME..."
+    wget -q --show-progress -O "$ZIP_PATH" "$DOWNLOAD_URL"
+
+    if [ $? -ne 0 ]; then
+        echo -e "- ${RED}Download failed. Check your release URL.${NC}"
+        rm -f "$ZIP_PATH"
+        return 1
+    fi
+
+    echo -e "- Download complete. Extracting..."
+
+    mkdir -p "$GALAXY_AI_DIR"
+    unzip -o "$ZIP_PATH" -d "$GALAXY_AI_DIR" >/dev/null 2>&1
+
+    if [ $? -ne 0 ]; then
+        echo -e "- ${RED}Extraction failed.${NC}"
+        rm -f "$ZIP_PATH"
+        return 1
+    fi
+
+    rm -f "$ZIP_PATH"
+    echo -e "- ${YELLOW}Galaxy AI apps ready.${NC}"
+}
+
+
+APPLY_GALAXY_AI() {
+    echo -e ""
+    if [ "$#" -ne 1 ]; then
+        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
+        return 1
+    fi
+
+    local EXTRACTED_FIRM_DIR="$1"
+    local GALAXY_AI_DIR="$(pwd)/QuantumROM/Mods/GalaxyAI"
+
+    if [ ! -d "$GALAXY_AI_DIR" ]; then
+        echo -e "- GalaxyAI mod directory not found. Skipping."
+        return 1
+    fi
+
+    echo -e "${YELLOW}Applying Galaxy AI apps.${NC}"
+
+    # ── priv-app ──────────────────────────────────────────────
+    local PRIV_APP_SRC="$GALAXY_AI_DIR/system/system/priv-app"
+    local PRIV_APP_DST="$EXTRACTED_FIRM_DIR/system/system/priv-app"
+
+    if [ -d "$PRIV_APP_SRC" ]; then
+        for app_dir in "$PRIV_APP_SRC"/*/; do
+            app_name="$(basename "$app_dir")"
+            if [ -d "$PRIV_APP_DST/$app_name" ]; then
+                echo -e "- priv-app/$app_name already exists → replacing"
+                rm -rf "$PRIV_APP_DST/$app_name"
+            else
+                echo -e "- priv-app/$app_name → adding"
+            fi
+            cp -rfa "$app_dir" "$PRIV_APP_DST/"
+        done
+    fi
+
+    # ── app ───────────────────────────────────────────────────
+    local APP_SRC="$GALAXY_AI_DIR/system/system/app"
+    local APP_DST="$EXTRACTED_FIRM_DIR/system/system/app"
+
+    if [ -d "$APP_SRC" ]; then
+        for app_dir in "$APP_SRC"/*/; do
+            app_name="$(basename "$app_dir")"
+            if [ -d "$APP_DST/$app_name" ]; then
+                echo -e "- app/$app_name already exists → replacing"
+                rm -rf "$APP_DST/$app_name"
+            else
+                echo -e "- app/$app_name → adding"
+            fi
+            cp -rfa "$app_dir" "$APP_DST/"
+        done
+    fi
+
+    # ── Floating feature flags ────────────────────────────────
+    echo -e "- Applying Galaxy AI floating feature flags."
+
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_IMAGE_CLIPPER"             "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_OBJECT_ERASER"             "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_REFLECTION_ERASER"         "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_SHADOW_ERASER"             "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_SMART_LASSO"               "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_SPOT_FIXER"                "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_STYLE_TRANSFER"            "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_GENAI_SUPPORT_TIME_WEATHER_WALLPAPER"    "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_VISION_SUPPORT_AI_MY_FAVORITE_CONTENTS"  "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_COMMON_SUPPORT_SPRITE_ANIMATION"         "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_LAUNCHER_SUPPORT_WALLPAPER_MAGICIAN"     "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_COMMON_SUPPORT_STORAGE_SHARE"            "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_COMMON_SUPPORT_YOUR_PHONE"               "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_SETTINGS_SUPPORT_BIXBY_ROUTINES"         "TRUE"
+
+    # Remove disable AI flag if present
+    sed -i '/SEC_FLOATING_FEATURE_COMMON_DISABLE_NATIVE_AI/d' "$TARGET_ROM_FLOATING_FEATURE"
+
+    # ── Build props ───────────────────────────────────────────
+    echo -e "- Applying Galaxy AI build props."
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system"  "ro.samsung.feature.galaxyai.support" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "product" "ro.samsung.feature.galaxyai.support" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system"  "ro.config.galaxyai"                  "1"
+
+    # ── Permissions XML ───────────────────────────────────────
+    local PERM_SRC="$GALAXY_AI_DIR/system/system/etc/permissions/privapp-permissions-galaxyai.xml"
+    local PERM_DST="$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-galaxyai.xml"
+    if [ -f "$PERM_SRC" ]; then
+        echo -e "- Copying Galaxy AI permissions XML."
+        cp -f "$PERM_SRC" "$PERM_DST"
+    fi
+
+    # ── Fix ownership ─────────────────────────────────────────
+    chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR/system/system/app"
+    chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR/system/system/priv-app"
+    chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR/system/system/etc/permissions"
+    chmod -R u+rwX "$EXTRACTED_FIRM_DIR/system/system/app"
+    chmod -R u+rwX "$EXTRACTED_FIRM_DIR/system/system/priv-app"
+    chmod -R u+rwX "$EXTRACTED_FIRM_DIR/system/system/etc/permissions"
+
+    echo -e "- Galaxy AI apps applied successfully."
+}
+
 # Optimized Live blur 
 APPLY_BLUR_FIX() {
     local ROM_DIR="$1"
