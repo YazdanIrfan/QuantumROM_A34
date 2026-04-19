@@ -1635,6 +1635,70 @@ APPLY_CUSTOM_FEATURES() {
     fi
 }
 
+APPLY_GALAXY_AI() {
+    echo -e ""
+    if [ "$#" -ne 1 ]; then
+        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
+        return 1
+    fi
+
+    local EXTRACTED_FIRM_DIR="$1"
+    echo -e "${YELLOW}Integrating Galaxy AI & Now Brief...${NC}"
+
+    # 1. UNLOCK GALAXY AI MENUS & FEATURES
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_COMMON_SUPPORT_AI_FEATURES" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_INTELLIGENCE_SUPPORT_TEXT_TRANSLATION" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_INTELLIGENCE_SUPPORT_WRITING_ASSIST" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_INTELLIGENCE_SUPPORT_SUMMARIZATION" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_SAMSUNG_KEYBOARD_SUPPORT_AI_FEATURES" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_VOICERECORDER_SUPPORT_AI_SUMMARIZE" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_NOTESHUB_SUPPORT_AI_FEATURES" "TRUE"
+    
+    # 2. ENABLE NOW BRIEF / DAILY BOARD
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_COMMON_SUPPORT_BRIX" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_RUBIN_SUPPORT_CONTEXTUAL_AWARENESS" "TRUE"
+    UPDATE_FLOATING_FEATURE "SEC_FLOATING_FEATURE_RUBIN_CONFIG_AWARENESS_VERSION" "2"
+
+    # 3. DEVICE SPOOFING FOR SAMSUNG SERVER VALIDATION
+    echo -e "- Spoofing device to SM-S928B for Server Validation"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.product.model" "SM-S928B"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "product" "ro.product.model" "SM-S928B"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "vendor" "ro.product.model" "SM-S928B"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system_ext" "ro.product.model" "SM-S928B"
+
+    # 4. ENABLE CIRCLE TO SEARCH (OMNI)
+    echo -e "- Enabling Circle to Search Props"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.com.google.cdp.features.nga" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "product" "ro.com.google.cdp.features.nga" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.com.google.omni.flag" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "product" "ro.com.google.omni.flag" "true"
+
+    # 5. COPY APPS AND SET PERMISSIONS
+    local AI_MOD_DIR="$(pwd)/QuantumROM/Mods/GalaxyAI"
+    if [ -d "$AI_MOD_DIR" ]; then
+        echo -e "- Copying AI Apps and Now Brief Engine..."
+        cp -rfa "$AI_MOD_DIR/"* "$EXTRACTED_FIRM_DIR/"
+        
+        # Ensure SELinux and permissions
+        chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR/system/system/priv-app"
+        
+        local ai_apps=("BixbyInterpreter" "RubinVersion37" "SamsungIntelliVoiceServices" "SecSettingsIntelligence")
+        
+        for app in "${ai_apps[@]}"; do
+            if [ -d "$EXTRACTED_FIRM_DIR/system/system/priv-app/$app" ]; then
+                find "$EXTRACTED_FIRM_DIR/system/system/priv-app/$app" -type d -exec chmod 755 {} 2>/dev/null \;
+                find "$EXTRACTED_FIRM_DIR/system/system/priv-app/$app" -type f -exec chmod 644 {} 2>/dev/null \;
+            fi
+        done
+        
+        # Apply correct permissions to the XML file
+        if [ -f "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-ai.xml" ]; then
+            chmod 644 "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-ai.xml"
+        fi
+    else
+        echo -e "- [!] GalaxyAI mod folder not found in Repo. Features will be missing."
+    fi
+}
 
 # Optimized Live blur 
 APPLY_BLUR_FIX() {
