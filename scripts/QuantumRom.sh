@@ -1673,17 +1673,37 @@ APPLY_GALAXY_AI() {
     BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.com.google.omni.flag" "true"
     BUILD_PROP "$EXTRACTED_FIRM_DIR" "product" "ro.com.google.omni.flag" "true"
 
-    # 5. COPY APPS AND SET PERMISSIONS
+    # 5. REASSEMBLE, EXTRACT, AND SET PERMISSIONS
     local AI_MOD_DIR="$(pwd)/QuantumROM/Mods/GalaxyAI"
-    if [ -d "$AI_MOD_DIR" ]; then
-        echo -e "- Copying AI Apps and Now Brief Engine..."
-        cp -rfa "$AI_MOD_DIR/"* "$EXTRACTED_FIRM_DIR/"
+    
+    # Check if the split parts exist
+    if ls "$AI_MOD_DIR/GalaxyAI.zip.part"* 1> /dev/null 2>&1; then
+        echo -e "- Reassembling and Extracting Galaxy AI Framework..."
         
-        # Ensure SELinux and permissions
+        # Stitch parts back together into a temporary zip
+        cat "$AI_MOD_DIR/GalaxyAI.zip.part"* > "$AI_MOD_DIR/GalaxyAI_merged.zip"
+        
+        # Unzip into the firmware directory
+        unzip -o "$AI_MOD_DIR/GalaxyAI_merged.zip" -d "$EXTRACTED_FIRM_DIR/" >/dev/null 2>&1
+        
+        # Clean up merged zip
+        rm -f "$AI_MOD_DIR/GalaxyAI_merged.zip"
+        
+        # Ensure correct ownership
         chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR/system/system/priv-app"
+        chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR/system/system/etc/permissions"
         
-        local ai_apps=("BixbyInterpreter" "RubinVersion37" "SamsungIntelliVoiceServices" "SecSettingsIntelligence")
+        local ai_apps=(
+            "BixbyInterpreter" 
+            "CMHProvider" 
+            "RubinVersion37" 
+            "SamsungIntelliVoiceServices" 
+            "SamsungSmartSuggestions" 
+            "SecSettingsIntelligence" 
+            "SemanticSearchCore"
+        )
         
+        # Apply 755 to folders and 644 to files for the 7 apps
         for app in "${ai_apps[@]}"; do
             if [ -d "$EXTRACTED_FIRM_DIR/system/system/priv-app/$app" ]; then
                 find "$EXTRACTED_FIRM_DIR/system/system/priv-app/$app" -type d -exec chmod 755 {} 2>/dev/null \;
@@ -1691,12 +1711,12 @@ APPLY_GALAXY_AI() {
             fi
         done
         
-        # Apply correct permissions to the XML file
+        # Apply 644 to the merged AI permissions XML
         if [ -f "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-ai.xml" ]; then
             chmod 644 "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-ai.xml"
         fi
     else
-        echo -e "- [!] GalaxyAI mod folder not found in Repo. Features will be missing."
+        echo -e "- [!] GalaxyAI split zip parts not found in Repo. Features will be missing."
     fi
 }
 
