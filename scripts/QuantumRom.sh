@@ -1663,8 +1663,8 @@ APPLY_GALAXY_AI() {
     echo -e "- Spoofing device to SM-S928B for Server Validation"
     BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.product.model" "SM-S928B"
     BUILD_PROP "$EXTRACTED_FIRM_DIR" "product" "ro.product.model" "SM-S928B"
-    BUILD_PROP "$EXTRACTED_FIRM_DIR" "vendor" "ro.product.model" "SM-S928B"
     BUILD_PROP "$EXTRACTED_FIRM_DIR" "system_ext" "ro.product.model" "SM-S928B"
+    # BUILD_PROP "$EXTRACTED_FIRM_DIR" "vendor" "ro.product.model" "SM-S928B" # Commented out to prevent GitHub Actions warning
 
     # 4. ENABLE CIRCLE TO SEARCH (OMNI)
     echo -e "- Enabling Circle to Search Props"
