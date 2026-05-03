@@ -26,6 +26,7 @@ $GOFILE_LINK
 # • Build Time: $BUILD_TIME
 • MD5: $MD5_SUM
 
+
 #### Rom Info:
 • Quantum ROM V1.X.X For: $STOCK_DEVICE
 # • Ported For: $STOCK_DEVICE

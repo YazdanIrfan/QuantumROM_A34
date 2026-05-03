@@ -6,39 +6,106 @@ RED="\e[31m"
 YELLOW="\e[33m"
 NC="\e[0m"
 
+
+# GENERAL / SYSTEM / BLOAT
 DEBLOAT_APPS=(
-"HMT" "PaymentFramework" "Duo" "FactoryCameraFB" "WlanTest" "DuoStub"
-"AndroidDeveloperVerifier" "AndroidGlassesCore" "SOAgent77" "SamsungBilling"
-"AirGlance" "AirReadingGlass" "SamsungTTS" "WlanTest" "ARCore" "ARDrawing"
-"ARZone" "BGMProvider" "BixbyWakeup" "BlockchainBasicKit" "Cameralyzer"
-"DictDiotekForSec" "EasymodeContactsWidget81" "Fast" "FBAppManager_NS"
-"FunModeSDK" "KidsHome_Installer" "LinkSharing_v11" "LiveDrawing"
-"MAPSAgent" "MinusOnePage" "MoccaMobile" "Netflix_stub" "ParentalCare"
-"PhotoTable" "PlayAutoInstallConfig" "SamsungPassAutofill_v1"
-"SmartReminder" "SmartSwitchStub" "UniversalMDMClient"
-"VideoEditorLite_Dream_N" "VisionIntelligence3.7" "VoiceAccess"
-"VTCameraSetting" "WebManual" "WifiGuider" "KTAuth" "KTCustomerService"
-"KTUsimManager" "LGUMiniCustomerCenter" "LGUplusTsmProxy" "SKTMemberShip_new" "SktUsimService" "TWorld" "AirCommand"
-"AppUpdateCenter" "AREmoji" "AREmojiEditor" "AutoDoodle"
-"AvatarEmojiSticker" "AvatarEmojiSticker_S" "Bixby" 
-"BixbyVisionFramework3.5" "DigitalKey" "Discover" "DiscoverSEP"
-"EarphoneTypeC" "FBInstaller_NS" "FBServices" "FotaAgent"
-"GalleryWidget" "HashTagService" "LedCoverService" "LiveStickers"
-"MemorySaver_O_Refresh" "OMCAgent5" "OneDrive_Samsung_v3"
-"OneStoreService" "SamsungCarKeyFw" "SamsungPass" "SettingsBixby" "SetupIndiaServicesTnC"
-"SKTFindLostPhone" "SKTHiddenMenu" "SKTMemberShip"
-"SKTOneStore" "SktUsimService" "SmartEye" "SmartPush"
-"SmartTouchCall" "SOAgent7" "SOAgent75" "SolarAudio-service"
-"SPPPushClient" "sticker" "StickerFaceARAvatar" "StoryService"
-"SumeNNService" "SVoiceIME" "SwiftkeyIme" "SwiftkeySetting"
-"SystemUpdate" "TADownloader" "TalkbackSE" "TaPackAuthFw"
-"TPhoneOnePackage" "TPhoneSetup" "TWorld" "UltraDataSaving_O"
-"Upday" "UsimRegistrationKOR" "AvatarPicker" "GpuWatchApp"
-"KT114Provider2" "KTHiddenMenu" "KTOneStore" "KTServiceAgent"
-"KTServiceMenu" "LGUGPSnWPS" "LGUHiddenMenu" "LGUOZStore"
-"SKTFindLostPhoneApp" "SmartPush_64" "SOAgent76" "TService"
-"vexfwk_service" "VexScanner" "LiveEffectService"
+"HMT" "PaymentFramework" "DigitalWellbeing" "FactoryCameraFB"
+"WlanTest" "AirGlance" "AirReadingGlass" "AndroidGlassesCore"
+"SOAgent77" "ARCore" "ARDrawing" "ARZone" "BGMProvider"
+"SingleTakeService" "BixbyWakeup" "BlockchainBasicKit"
+"Cameralyzer" "DictDiotekForSec" "EasymodeContactsWidget81"
+"Fast" "FunModeSDK" "GearManagerStub" "KidsHome_Installer"
+"LinkSharing_v11" "LiveDrawing" "MAPSAgent" "MdecService"
+"MinusOnePage" "MoccaMobile" "Netflix_stub" "Notes40"
+"ParentalCare" "PhotoTable" "SmartReminder" "SmartSwitchStub"
+"UnifiedWFC" "UniversalMDMClient" "VideoEditorLite_Dream_N"
+"VisionIntelligence3.7" "VoiceAccess" "VTCameraSetting"
+"WebManual" "WifiGuider" "AutomationTest_FB" "FactoryTestProvider"
 )
+
+
+# KOREAN / CARRIER APPS
+CARRIER_APPS=(
+"KTAuth" "KTCustomerService" "KTUsimManager"
+"LGUMiniCustomerCenter" "LGUplusTsmProxy"
+"SKTMemberShip_new" "SktUsimService" "TWorld"
+"KT114Provider2" "KTHiddenMenu" "KTOneStore"
+"KTServiceAgent" "KTServiceMenu"
+"LGUGPSnWPS" "LGUHiddenMenu" "LGUOZStore"
+"SKTFindLostPhone" "SKTHiddenMenu" "SKTMemberShip"
+"SKTOneStore" "SKTFindLostPhoneApp"
+"TPhoneOnePackage" "TPhoneSetup" "TService"
+"UsimRegistrationKOR"
+)
+
+
+# SAMSUNG FEATURES / APPS
+SAMSUNG_APPS=(
+"SamsungCalendar" "SamsungTTS" "SamsungBilling"
+"OneDrive_Samsung_v3" "SamsungCarKeyFw"
+"SamsungPass" "SamsungSmartSuggestions"
+"SamsungPassAutofill_v1"
+"AirCommand" "AppUpdateCenter" "AREmoji"
+"AREmojiEditor" "AutoDoodle" "AvatarEmojiSticker"
+"AvatarEmojiSticker_S" "AvatarPicker"
+"GalleryWidget" "LiveStickers" "StoryService"
+"StickerFaceARAvatar" "sticker"
+)
+
+
+# SAMSUNG AI / SMART
+SAMSUNG_AI=(
+"LiveTranscribe" "Bixby" "BixbyInterpreter"
+"BixbyVisionFramework3.5" "SettingsBixby"
+"SmartEye" "SmartPush" "SmartPush_64"
+"SmartThingsKit" "SmartTouchCall"
+"VisionIntelligence3.7"
+)
+
+
+# GOOGLE APPS
+GOOGLE_APPS=(
+"SpeechServicesByGoogle" "Maps" "Duo" "Photos"
+"AssistantShell" "BardShell" "DuoStub"
+"GoogleCalendarSyncAdapter" "AndroidDeveloperVerifier"
+"YourPhone_Stub" "AndroidAutoStub"
+"AndroidSystemIntelligence" "GoogleRestore"
+"Messages" "SearchSelector" "PlayAutoInstallConfig"
+)
+
+
+# FACEBOOK
+FACEBOOK_APPS=("FBAppManager_NS" "FBInstaller_NS" "FBServices")
+
+
+# DRIVERS
+HARDWARE_DRIVERS=("DevGPUDriver-EX2200" "GameDriver-EX2100" "GameDriver-EX2200" "GameDriver-SM8150")
+
+
+# MISC / SERVICES
+MISC_SERVICES=(
+"AuthFramework" "Discover" "DiscoverSEP"
+"EarphoneTypeC" "EasySetup" "FotaAgent"
+"HashTagService" "LedCoverService"
+"LinkToWindowsService" "MemorySaver_O_Refresh"
+"MultiControl" "MultiControlVP6"
+"OMCAgent5" "OneStoreService" "FactoryAirCommandManager"
+"SOAgent7" "SOAgent75" "SOAgent76"
+"SolarAudio-service" "SPPPushClient"
+"SumeNNService" "SVoiceIME"
+"SwiftkeyIme" "SwiftkeySetting"
+"SystemUpdate" "TADownloader"
+"TalkbackSE" "TaPackAuthFw"
+"UltraDataSaving_O" "Upday"
+"YourPhone_P1_5" "DsmsAPK"
+"vexfwk_service" "VexScanner"
+"LiveEffectService" "MyGalaxyService"
+)
+
+
+# Knox
+KNOX_APPS=("Rampart" "KnoxFrameBufferProvider")
+
 
 REMOVE_ESIM_FILES() {
     local EXTRACTED_FIRM_DIR="$1"
@@ -72,8 +139,15 @@ REMOVE_FABRIC_CRYPTO() {
 
 KICK() {
     local EXTRACTED_FIRM_DIR="$1"
+    if [ "$#" -lt 2 ]; then
+        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR> <APPS...>"
+        return 1
+    fi
+    
+    local EXTRACTED_FIRM_DIR="$1"
+    shift
+    local APPS_LIST=("$@")
 
-    echo -e "- Debloating apps."
     local APP_DIRS=(
         "$EXTRACTED_FIRM_DIR/system/system/app"
         "$EXTRACTED_FIRM_DIR/system/system/priv-app"
@@ -81,11 +155,11 @@ KICK() {
         "$EXTRACTED_FIRM_DIR/product/priv-app"
     )
 
-    for app in "${DEBLOAT_APPS[@]}"; do
+    for app in "${APPS_LIST[@]}"; do
         for dir in "${APP_DIRS[@]}"; do
             target="$dir/$app"
             if [[ -d "$target" ]]; then
-                rm -rf "$target" || echo -e "[WARN] Failed to remove $target"
+                rm -rf "$target" || echo -e "${RED}[WARN] Failed to delete $target${NC}"
             fi
         done
     done
@@ -94,20 +168,36 @@ KICK() {
 DEBLOAT() {
     local EXTRACTED_FIRM_DIR="$1"
 
-    echo -e "${YELLOW}Debloating apps and files.${NC}"
-    KICK "$EXTRACTED_FIRM_DIR"
-    REMOVE_ESIM_FILES "$EXTRACTED_FIRM_DIR"
-    REMOVE_FABRIC_CRYPTO "$EXTRACTED_FIRM_DIR"
 
-    echo -e "- Cleaning unnecessary files."
+
+	if [ ! -d "$EXTRACTED_FIRM_DIR/system" ]; then
+	    echo -e "No extracted firmware found."
+        return 1
+    fi
+
+    echo -e "${YELLOW}Debloating apps and files.${NC}"
+
+	# Debloat apps
+	echo "- Debloating apps."
+    KICK "$EXTRACTED_FIRM_DIR" "${DEBLOAT_APPS[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${CARRIER_APPS[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${SAMSUNG_APPS[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${SAMSUNG_AI[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${GOOGLE_APPS[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${FACEBOOK_APPS[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${HARDWARE_DRIVERS[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${MISC_SERVICES[@]}"
+    KICK "$EXTRACTED_FIRM_DIR" "${KNOX_APPS[@]}"
+
+    REMOVE_ESIM_FILES "$EXTRACTED_FIRM_DIR"
+
+	REMOVE_FABRIC_CRYPTO "$EXTRACTED_FIRM_DIR"
+
+	echo -e "- Deleting unnecessary files and folders."
     rm -rf "$EXTRACTED_FIRM_DIR/system/system/app"/SamsungTTS*
-    # ❌ boot-image.prof and bprof REMOVED FROM DELETION (kept for performance)
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/mediasearch"
     rm -rf "$EXTRACTED_FIRM_DIR/system/system/hidden"
     rm -rf "$EXTRACTED_FIRM_DIR/system/system/preload"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/MediaSearch"
-    # ❌ GameDriver-* REMOVED FROM DELETION (kept for GPU performance)
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/tts"
-    rm -rf "$EXTRACTED_FIRM_DIR/product/app/SpeechServicesByGoogle/oat"
-    rm -rf "$EXTRACTED_FIRM_DIR/product/priv-app"/HotwordEnrollment*
+	rm -rf "$EXTRACTED_FIRM_DIR/system/system/tts"
+	rm -rf "$EXTRACTED_FIRM_DIR/product/app/YouTube/oat"
+	rm -rf "$EXTRACTED_FIRM_DIR/product/priv-app"/HotwordEnrollment*
 }
