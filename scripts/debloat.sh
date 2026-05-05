@@ -70,7 +70,7 @@ GOOGLE_APPS=(
 "GoogleCalendarSyncAdapter" "AndroidDeveloperVerifier"
 "YourPhone_Stub" "AndroidAutoStub"
 "AndroidSystemIntelligence" "GoogleRestore"
-"Messages" "SearchSelector" "PlayAutoInstallConfig"
+"SamsungMessages" "SearchSelector" "PlayAutoInstallConfig"
 )
 
 

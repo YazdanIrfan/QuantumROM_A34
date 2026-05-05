@@ -12,17 +12,19 @@ REAL_USER=${SUDO_USER:-$USER}
 QT_DIR="$(pwd)"
 
 # Binary
-chmod +x $QT_DIR/bin/lp/lpmake
-chmod +x $QT_DIR/bin/lp/lpunpack
-chmod +x $QT_DIR/bin/ext4/make_ext4fs
-chmod +x $QT_DIR/bin/erofs-utils/mkfs.erofs
-chmod +x $QT_DIR/bin/erofs-utils/extract.erofs
-
 export lpmake="$QT_DIR/bin/lp/lpmake"
 export lpunpack="$QT_DIR/bin/lp/lpunpack"
 export make_ext4fs="$QT_DIR/bin/ext4/make_ext4fs"
+export e2fsdroid="$QT_DIR/bin/e2fsdroid/e2fsdroid"
 export mkfs_erofs="$QT_DIR/bin/erofs-utils/mkfs.erofs"
 export extract_erofs="$QT_DIR/bin/erofs-utils/extract.erofs"
+
+chmod +x $lpmake
+chmod +x $lpunpack
+chmod +x $e2fsdroid
+chmod +x $mkfs_erofs
+chmod +x $make_ext4fs
+chmod +x $extract_erofs
 
 
 CHECK_FILE() {
@@ -337,37 +339,25 @@ EXTRACT_FIRMWARE_IMG() {
             continue
         fi
 
-        local partition
-        local fstype
-        local IMG_SIZE
-
-        partition="$(basename "${imgfile%.img}")"
-        fstype=$(blkid -o value -s TYPE "$imgfile")
+        local partition="$(basename "${imgfile%.img}")"
+        local fstype=$(blkid -o value -s TYPE "$imgfile")
         [ -z "$fstype" ] && fstype=$(file -b "$imgfile")
+		local IMG_SIZE=$(stat -c%s -- "$imgfile")
+
+		rm -rf "$FIRM_DIR/$partition"
 
         case "$fstype" in
             ext4)
-                IMG_SIZE=$(stat -c%s -- "$imgfile")
                 echo -e "- $partition.img Detected ext4. Size: $IMG_SIZE bytes."
-
-                rm -rf "$FIRM_DIR/$partition"
                 python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
                 ;;
-
             erofs)
-                IMG_SIZE=$(stat -c%s -- "$imgfile")
                 echo -e "- $partition.img Detected erofs. Size: $IMG_SIZE bytes. Extracting..."
-
-                rm -rf "$FIRM_DIR/$partition"
                 "$extract_erofs" -i "$imgfile" -x -f -o "$FIRM_DIR" >/dev/null 2>&1
                 ;;
-
 			f2fs)
-                IMG_SIZE=$(stat -c%s -- "$imgfile")
                 echo -e "- $partition.img Detected f2fs. Size: $IMG_SIZE bytes. Converting to ext4"
 				bash "$(pwd)/scripts/convert_to_ext4.sh" "$imgfile"
-
-				rm -rf "$FIRM_DIR/$partition"
                 python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
                 ;;
             *)
@@ -1669,8 +1659,6 @@ APPLY_CUSTOM_FEATURES() {
 		rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/style_transfer"
 	    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app"/PhotoEditor_*
         cp -rfa "$(pwd)/QuantumROM/Mods/Apps/PhotoEditor_AIFull/"* "$EXTRACTED_FIRM_DIR"
-		unzip -o "$EXTRACTED_FIRM_DIR/system/system/priv-app/PhotoEditor_AIFull.zip" -d "$EXTRACTED_FIRM_DIR/system/system/priv-app/" >/dev/null 2>&1
-		rm -f "$EXTRACTED_FIRM_DIR/system/system/priv-app/PhotoEditor_AIFull.zip"
     fi
 
     # Text recognition: The full OCR app cannot be included in this repository due to GitHub’s file size limitations.
