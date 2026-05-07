@@ -1842,82 +1842,49 @@ EOF
     echo "[✓] Live Blur enabled"
 }
 
-ADD_S25_WALLPAPER_RES() {
-
+APPLY_S25_WALLPAPER() {
     local ROM_DIR="$1"
 
-    echo "[*] Adding S25 Edge wallpaper resources..."
+    echo "[*] Applying S25 wallpaper package..."
 
-    #########################################################
-    # DETECT WALLPAPER LOCATION
-    #########################################################
-
-    local TARGET_DIR=""
-
-    if [ -d "$ROM_DIR/system/system/app/wallpaper-res" ]; then
-        TARGET_DIR="$ROM_DIR/system/system/app/wallpaper-res"
-
-    elif [ -d "$ROM_DIR/product/app/wallpaper-res" ]; then
-        TARGET_DIR="$ROM_DIR/product/app/wallpaper-res"
-
+    # Detect correct system path
+    if [ -d "$ROM_DIR/system/system" ]; then
+        SYSTEM_DIR="$ROM_DIR/system/system"
     else
-        echo "[*] wallpaper-res not found in ROM"
-        echo "[*] Defaulting to product/app"
-
-        TARGET_DIR="$ROM_DIR/product/app/wallpaper-res"
-        mkdir -p "$TARGET_DIR"
+        SYSTEM_DIR="$ROM_DIR/system"
     fi
 
-    #########################################################
-    # REBUILD SPLIT APK
-    #########################################################
+    WALL_DIR="QuantumROM/Mods/S25_Wallpaper"
 
-    echo "[*] Rebuilding wallpaper-res.apk..."
+    # Rebuild wallpaper-res.apk
+    echo "[*] Reconstructing wallpaper-res.apk..."
 
-    cat \
-    QuantumROM/Mods/S25_Wallpaper/wallpaper-part-* \
-    > QuantumROM/Mods/S25_Wallpaper/wallpaper-res.apk
+    cat "$WALL_DIR"/wallpaper-part-* > \
+        "$WALL_DIR/wallpaper-res.apk"
 
-    #########################################################
-    # VERIFY APK EXISTS
-    #########################################################
-
-    if [ ! -f QuantumROM/Mods/S25_Wallpaper/wallpaper-res.apk ]; then
-        echo "[ERROR] Failed to rebuild wallpaper-res.apk"
+    if [ ! -f "$WALL_DIR/wallpaper-res.apk" ]; then
+        echo "[ERROR] Failed to reconstruct wallpaper-res.apk"
         return 1
     fi
 
-    #########################################################
-    # REMOVE OLD APK
-    #########################################################
+    # Ensure target folder exists
+    mkdir -p "$SYSTEM_DIR/priv-app/wallpaper-res"
 
-    rm -f "$TARGET_DIR/wallpaper-res.apk"
+    # Replace stock wallpaper-res.apk
+    cp -f "$WALL_DIR/wallpaper-res.apk" \
+        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk"
 
-    #########################################################
-    # COPY NEW APK
-    #########################################################
-
-    cp -f \
-    QuantumROM/Mods/S25_Wallpaper/wallpaper-res.apk \
-    "$TARGET_DIR/"
-
-    #########################################################
-    # PERMISSIONS
-    #########################################################
-
-    chmod 644 "$TARGET_DIR/wallpaper-res.apk"
-
-    #########################################################
-    # SELINUX
-    #########################################################
+    chmod 644 \
+        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk"
 
     chcon u:object_r:system_file:s0 \
-    "$TARGET_DIR/wallpaper-res.apk" \
-    2>/dev/null || true
+        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk" \
+        2>/dev/null || true
 
-    #########################################################
+    echo "[✓] S25 wallpaper package installed"
 
-    echo "[✓] S25 wallpaper resources added"
+    # Cleanup temporary reconstructed apk
+    rm -f "$WALL_DIR/wallpaper-res.apk"
 }
 
 GEN_FS_CONFIG() {
