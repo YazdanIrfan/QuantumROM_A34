@@ -1782,6 +1782,61 @@ EOF
     echo "[✓] Live Blur enabled"
 }
 
+APPLY_CAMERA2API_FIX() {
+    local ROM_DIR="$1"
+
+    echo "[*] Applying MTK Camera2API Fix..."
+
+    #########################################################
+    # DETECT VENDOR PATH
+    #########################################################
+
+    if [ -d "$ROM_DIR/vendor" ]; then
+        VENDOR_DIR="$ROM_DIR/vendor"
+    elif [ -d "$ROM_DIR/system/vendor" ]; then
+        VENDOR_DIR="$ROM_DIR/system/vendor"
+    else
+        echo "[ERROR] Vendor directory not found!"
+        return 1
+    fi
+
+    #########################################################
+    # CREATE LIB64 DIRECTORY
+    #########################################################
+
+    mkdir -p "$VENDOR_DIR/lib64"
+
+    #########################################################
+    # INSTALL CAMERA LIBRARIES
+    #########################################################
+
+    cp -f QuantumROM/Mods/Camera2API/system/vendor/lib64/libmtkcam_3rdparty.customer.so \
+        "$VENDOR_DIR/lib64/"
+
+    cp -f QuantumROM/Mods/Camera2API/system/vendor/lib64/libmtkcam_metastore.so \
+        "$VENDOR_DIR/lib64/"
+
+    #########################################################
+    # SET PERMISSIONS
+    #########################################################
+
+    chmod 644 "$VENDOR_DIR/lib64/libmtkcam_3rdparty.customer.so"
+    chmod 644 "$VENDOR_DIR/lib64/libmtkcam_metastore.so"
+
+    #########################################################
+    # SELINUX CONTEXTS
+    #########################################################
+
+    chcon u:object_r:vendor_file:s0 \
+        "$VENDOR_DIR/lib64/libmtkcam_3rdparty.customer.so" 2>/dev/null || true
+
+    chcon u:object_r:vendor_file:s0 \
+        "$VENDOR_DIR/lib64/libmtkcam_metastore.so" 2>/dev/null || true
+
+    echo "[✓] Camera2API libraries installed"
+}
+
+
 GEN_FS_CONFIG() {
     if [ "$#" -ne 1 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
