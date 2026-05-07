@@ -1842,60 +1842,83 @@ EOF
     echo "[✓] Live Blur enabled"
 }
 
-APPLY_CAMERA2API_FIX() {
+ADD_S25_WALLPAPER_RES() {
+
     local ROM_DIR="$1"
 
-    echo "[*] Applying MTK Camera2API Fix..."
+    echo "[*] Adding S25 Edge wallpaper resources..."
 
     #########################################################
-    # DETECT VENDOR PATH
+    # DETECT WALLPAPER LOCATION
     #########################################################
 
-    if [ -d "$ROM_DIR/vendor" ]; then
-        VENDOR_DIR="$ROM_DIR/vendor"
-    elif [ -d "$ROM_DIR/system/vendor" ]; then
-        VENDOR_DIR="$ROM_DIR/system/vendor"
+    local TARGET_DIR=""
+
+    if [ -d "$ROM_DIR/system/system/app/wallpaper-res" ]; then
+        TARGET_DIR="$ROM_DIR/system/system/app/wallpaper-res"
+
+    elif [ -d "$ROM_DIR/product/app/wallpaper-res" ]; then
+        TARGET_DIR="$ROM_DIR/product/app/wallpaper-res"
+
     else
-        echo "[ERROR] Vendor directory not found!"
+        echo "[*] wallpaper-res not found in ROM"
+        echo "[*] Defaulting to product/app"
+
+        TARGET_DIR="$ROM_DIR/product/app/wallpaper-res"
+        mkdir -p "$TARGET_DIR"
+    fi
+
+    #########################################################
+    # REBUILD SPLIT APK
+    #########################################################
+
+    echo "[*] Rebuilding wallpaper-res.apk..."
+
+    cat \
+    QuantumROM/Mods/S25_Wallpaper/wallpaper-part-* \
+    > QuantumROM/Mods/S25_Wallpaper/wallpaper-res.apk
+
+    #########################################################
+    # VERIFY APK EXISTS
+    #########################################################
+
+    if [ ! -f QuantumROM/Mods/S25_Wallpaper/wallpaper-res.apk ]; then
+        echo "[ERROR] Failed to rebuild wallpaper-res.apk"
         return 1
     fi
 
     #########################################################
-    # CREATE LIB64 DIRECTORY
+    # REMOVE OLD APK
     #########################################################
 
-    mkdir -p "$VENDOR_DIR/lib64"
+    rm -f "$TARGET_DIR/wallpaper-res.apk"
 
     #########################################################
-    # INSTALL CAMERA LIBRARIES
+    # COPY NEW APK
     #########################################################
 
-    cp -f QuantumROM/Mods/Camera2API/system/vendor/lib64/libmtkcam_3rdparty.customer.so \
-        "$VENDOR_DIR/lib64/"
-
-    cp -f QuantumROM/Mods/Camera2API/system/vendor/lib64/libmtkcam_metastore.so \
-        "$VENDOR_DIR/lib64/"
+    cp -f \
+    QuantumROM/Mods/S25_Wallpaper/wallpaper-res.apk \
+    "$TARGET_DIR/"
 
     #########################################################
-    # SET PERMISSIONS
+    # PERMISSIONS
     #########################################################
 
-    chmod 644 "$VENDOR_DIR/lib64/libmtkcam_3rdparty.customer.so"
-    chmod 644 "$VENDOR_DIR/lib64/libmtkcam_metastore.so"
+    chmod 644 "$TARGET_DIR/wallpaper-res.apk"
 
     #########################################################
-    # SELINUX CONTEXTS
+    # SELINUX
     #########################################################
 
-    chcon u:object_r:vendor_file:s0 \
-        "$VENDOR_DIR/lib64/libmtkcam_3rdparty.customer.so" 2>/dev/null || true
+    chcon u:object_r:system_file:s0 \
+    "$TARGET_DIR/wallpaper-res.apk" \
+    2>/dev/null || true
 
-    chcon u:object_r:vendor_file:s0 \
-        "$VENDOR_DIR/lib64/libmtkcam_metastore.so" 2>/dev/null || true
+    #########################################################
 
-    echo "[✓] Camera2API libraries installed"
+    echo "[✓] S25 wallpaper resources added"
 }
-
 
 GEN_FS_CONFIG() {
     if [ "$#" -ne 1 ]; then

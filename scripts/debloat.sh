@@ -17,10 +17,10 @@ DEBLOAT_APPS=(
 "Cameralyzer" "DictDiotekForSec" "EasymodeContactsWidget81"
 "Fast" "FunModeSDK" "GearManagerStub" "KidsHome_Installer"
 "LinkSharing_v11" "LiveDrawing" "MAPSAgent" "MdecService"
-"MinusOnePage" "MoccaMobile" "Netflix_stub" "Notes40"
+"MinusOnePage" "MoccaMobile" "Netflix_stub"
 "ParentalCare" "PhotoTable" "SmartReminder" "SmartSwitchStub"
 "UnifiedWFC" "UniversalMDMClient" "VideoEditorLite_Dream_N"
-"VisionIntelligence3.7" "VoiceAccess" "VTCameraSetting"
+"VoiceAccess" "VTCameraSetting"
 "WebManual" "WifiGuider" "AutomationTest_FB" "FactoryTestProvider"
 )
 
@@ -44,25 +44,40 @@ CARRIER_APPS=(
 # SAMSUNG APPS / FEATURES
 # =========================
 SAMSUNG_APPS=(
-"SamsungCalendar" "SamsungTTS" "SamsungBilling"
-"OneDrive_Samsung_v3" "SamsungCarKeyFw"
+"SamsungBilling"
+"OneDrive_Samsung_v3"
+"SamsungCarKeyFw"
 "SamsungPass"
 "SamsungPassAutofill_v1"
-"AirCommand" "AppUpdateCenter" "AREmoji"
-"AREmojiEditor" "AutoDoodle" "AvatarEmojiSticker"
-"AvatarEmojiSticker_S" "AvatarPicker"
+"AirCommand"
+"AppUpdateCenter"
+"AREmoji"
+"AREmojiEditor"
+"AutoDoodle"
+"AvatarEmojiSticker"
+"AvatarEmojiSticker_S"
+"AvatarPicker"
 "GalleryWidget"
-"StickerFaceARAvatar" "sticker"
-"MyGalaxy" "SamsungShop" "ShopSamsung"
+"StickerFaceARAvatar"
+"sticker"
+"MyGalaxy"
+"SamsungShop"
+"ShopSamsung"
 )
 
 # =========================
 # SAMSUNG AI / SMART
 # =========================
 SAMSUNG_AI=(
-"LiveTranscribe" "Bixby" "BixbyInterpreter" "SettingsBixby"
-"SmartEye" "SmartPush" "SmartPush_64"
-"SmartThingsKit" "SmartTouchCall"
+"LiveTranscribe"
+"Bixby"
+"BixbyInterpreter"
+"SettingsBixby"
+"SmartEye"
+"SmartPush"
+"SmartPush_64"
+"SmartThingsKit"
+"SmartTouchCall"
 )
 
 # =========================
@@ -70,19 +85,39 @@ SAMSUNG_AI=(
 # =========================
 GOOGLE_APPS=(
 "SpeechServicesByGoogle"
-"Maps"                # ✅ Google Maps removed
-"Duo" "Photos"
-"AssistantShell" "BardShell" "DuoStub"
-"GoogleCalendarSyncAdapter" "AndroidDeveloperVerifier"
-"YourPhone_Stub" "AndroidAutoStub" "GoogleRestore"
-"SamsungMessages" "SearchSelector" "PlayAutoInstallConfig"
-"YouTube" "YouTubeStub"
+
+# Removed Google Apps
+"Maps"
+"Duo"
+"Photos"
+"AssistantShell"
+"BardShell"
+"DuoStub"
+"GoogleCalendarSyncAdapter"
+"AndroidDeveloperVerifier"
+"YourPhone_Stub"
+"AndroidAutoStub"
+"GoogleRestore"
+"SamsungMessages"
+"SearchSelector"
+"PlayAutoInstallConfig"
+"YouTube"
+"YouTubeStub"
+
+# Newly Added
+"Chrome"
+"Gmail2"
+"GlanceOnSamsung"
 )
 
 # =========================
 # FACEBOOK
 # =========================
-FACEBOOK_APPS=("FBAppManager_NS" "FBInstaller_NS" "FBServices")
+FACEBOOK_APPS=(
+"FBAppManager_NS"
+"FBInstaller_NS"
+"FBServices"
+)
 
 # =========================
 # DRIVERS
@@ -98,35 +133,59 @@ HARDWARE_DRIVERS=(
 # MISC SERVICES
 # =========================
 MISC_SERVICES=(
-"AuthFramework" "Discover" "DiscoverSEP"
-"EarphoneTypeC" "EasySetup" "FotaAgent"
-"HashTagService" "LedCoverService"
-"LinkToWindowsService" "MemorySaver_O_Refresh"
-"MultiControl" "MultiControlVP6"
-"OMCAgent5" "OneStoreService" "FactoryAirCommandManager"
-"SOAgent7" "SOAgent75" "SOAgent76"
-"SolarAudio-service" "SPPPushClient"
-"SumeNNService" "SVoiceIME"
-"SwiftkeyIme" "SwiftkeySetting"
-"SystemUpdate" "TADownloader"
-"TalkbackSE" "TaPackAuthFw"
-"UltraDataSaving_O" "Upday"
-"YourPhone_P1_5" "DsmsAPK"
-"vexfwk_service" "VexScanner"
+"AuthFramework"
+"Discover"
+"DiscoverSEP"
+"EarphoneTypeC"
+"EasySetup"
+"FotaAgent"
+"HashTagService"
+"LedCoverService"
+"LinkToWindowsService"
+"MemorySaver_O_Refresh"
+"MultiControl"
+"MultiControlVP6"
+"OMCAgent5"
+"OneStoreService"
+"FactoryAirCommandManager"
+"SOAgent7"
+"SOAgent75"
+"SOAgent76"
+"SolarAudio-service"
+"SPPPushClient"
+"SumeNNService"
+"SVoiceIME"
+"SwiftkeyIme"
+"SwiftkeySetting"
+"SystemUpdate"
+"TADownloader"
+"TalkbackSE"
+"TaPackAuthFw"
+"UltraDataSaving_O"
+"Upday"
+"YourPhone_P1_5"
+"DsmsAPK"
+"vexfwk_service"
+"VexScanner"
 "MyGalaxyService"
 )
 
 # =========================
 # KNOX
 # =========================
-KNOX_APPS=("Rampart" "KnoxFrameBufferProvider")
+KNOX_APPS=(
+"Rampart"
+"KnoxFrameBufferProvider"
+)
 
 # =========================
 # REMOVE ESIM
 # =========================
 REMOVE_ESIM_FILES() {
     local DIR="$1"
+
     echo "- Removing ESIM files."
+
     rm -rf "$DIR/system/system/etc/"*euicc*
     rm -rf "$DIR/system/system/priv-app/Esim"*
 }
@@ -136,7 +195,9 @@ REMOVE_ESIM_FILES() {
 # =========================
 REMOVE_FABRIC_CRYPTO() {
     local DIR="$1"
+
     echo "- Removing fabric crypto."
+
     rm -rf "$DIR/system/system/bin/fabric_crypto"
     rm -rf "$DIR/system/system/framework/FabricCryptoLib.jar"
     rm -rf "$DIR/system/system/priv-app/KmxService"
@@ -148,6 +209,7 @@ REMOVE_FABRIC_CRYPTO() {
 KICK() {
     local DIR="$1"
     shift
+
     local APPS=("$@")
 
     local PATHS=(
@@ -161,10 +223,14 @@ KICK() {
 
     for app in "${APPS[@]}"; do
         for base in "${PATHS[@]}"; do
+
             target="$base/$app"
+
             if [[ -d "$target" ]]; then
-                rm -rf "$target" || echo -e "${RED}[WARN] Failed: $target${NC}"
+                rm -rf "$target" || \
+                echo -e "${RED}[WARN] Failed: $target${NC}"
             fi
+
         done
     done
 }
@@ -173,6 +239,7 @@ KICK() {
 # MAIN DEBLOAT
 # =========================
 DEBLOAT() {
+
     local DIR="$1"
 
     if [ ! -d "$DIR/system" ]; then
@@ -196,9 +263,9 @@ DEBLOAT() {
     REMOVE_FABRIC_CRYPTO "$DIR"
 
     echo "- Cleaning leftover files..."
+
     rm -rf "$DIR/system/system/hidden"
     rm -rf "$DIR/system/system/preload"
-    rm -rf "$DIR/system/system/tts"
     rm -rf "$DIR/product/app/YouTube/oat"
 
     echo -e "${YELLOW}Debloat completed.${NC}"
