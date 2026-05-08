@@ -10,16 +10,16 @@ NC="\e[0m"
 # GENERAL / SYSTEM / BLOAT
 # =========================
 DEBLOAT_APPS=(
-"HMT" "PaymentFramework" "DigitalWellbeing" "FactoryCameraFB"
+"HMT" "PaymentFramework" "FactoryCameraFB"
 "WlanTest" "AirGlance" "AirReadingGlass" "AndroidGlassesCore"
 "SOAgent77" "ARCore" "ARDrawing" "ARZone" "BGMProvider"
 "SingleTakeService" "BixbyWakeup" "BlockchainBasicKit"
 "Cameralyzer" "DictDiotekForSec" "EasymodeContactsWidget81"
 "Fast" "FunModeSDK" "GearManagerStub" "KidsHome_Installer"
-"LinkSharing_v11" "LiveDrawing" "MAPSAgent" "MdecService"
+"LinkSharing_v11" "LiveDrawing" "MAPSAgent"
 "MinusOnePage" "MoccaMobile" "Netflix_stub"
 "ParentalCare" "PhotoTable" "SmartReminder" "SmartSwitchStub"
-"UnifiedWFC" "UniversalMDMClient" "VideoEditorLite_Dream_N"
+"UniversalMDMClient" "VideoEditorLite_Dream_N"
 "VoiceAccess" "VTCameraSetting"
 "WebManual" "WifiGuider" "AutomationTest_FB" "FactoryTestProvider"
 )
@@ -76,7 +76,6 @@ SAMSUNG_AI=(
 "SmartEye"
 "SmartPush"
 "SmartPush_64"
-"SmartThingsKit"
 "SmartTouchCall"
 )
 
@@ -95,8 +94,6 @@ GOOGLE_APPS=(
 "DuoStub"
 "GoogleCalendarSyncAdapter"
 "AndroidDeveloperVerifier"
-"YourPhone_Stub"
-"AndroidAutoStub"
 "GoogleRestore"
 "SamsungMessages"
 "SearchSelector"
@@ -123,10 +120,7 @@ FACEBOOK_APPS=(
 # DRIVERS
 # =========================
 HARDWARE_DRIVERS=(
-"DevGPUDriver-EX2200"
-"GameDriver-EX2100"
-"GameDriver-EX2200"
-"GameDriver-SM8150"
+
 )
 
 # =========================
@@ -134,17 +128,10 @@ HARDWARE_DRIVERS=(
 # =========================
 MISC_SERVICES=(
 "AuthFramework"
-"Discover"
-"DiscoverSEP"
-"EarphoneTypeC"
-"EasySetup"
 "FotaAgent"
 "HashTagService"
 "LedCoverService"
-"LinkToWindowsService"
 "MemorySaver_O_Refresh"
-"MultiControl"
-"MultiControlVP6"
 "OMCAgent5"
 "OneStoreService"
 "FactoryAirCommandManager"
@@ -155,15 +142,11 @@ MISC_SERVICES=(
 "SPPPushClient"
 "SumeNNService"
 "SVoiceIME"
-"SwiftkeyIme"
-"SwiftkeySetting"
 "SystemUpdate"
 "TADownloader"
 "TalkbackSE"
 "TaPackAuthFw"
-"UltraDataSaving_O"
 "Upday"
-"YourPhone_P1_5"
 "DsmsAPK"
 "vexfwk_service"
 "VexScanner"
