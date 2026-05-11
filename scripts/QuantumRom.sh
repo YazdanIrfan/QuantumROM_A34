@@ -84,7 +84,7 @@ GET_PROP() {
     esac
 
     if [ ! -f "$FILE" ]; then
-        echo -e "$FILE not found."
+        echo -e "- ${RED}File not found:${NC} $FILE"
         return 1
     fi
 
@@ -432,14 +432,21 @@ DISABLE_FDE() {
 
 
 INSTALL_FRAMEWORK() {
+    echo " "
+
     if [ "$#" -ne 2 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <APKTOOL_JAR_DIR> <framework-res.apk>"
         return 1
     fi
 
-    echo -e ""
 	local APKTOOL="$1"
     local framework_apk="$2"
+
+	if [ ! -f "$framework_apk" ]; then
+        echo -e "- ${RED}File not found:${NC} $framework_apk"
+        return 1
+    fi
+
     echo -e "${YELLOW}Installing $framework_apk ${NC}"
     java -jar "$APKTOOL" install-framework "$framework_apk"
 }
@@ -492,12 +499,16 @@ RECOMPILE() {
 	local DECOMPILED_DIR="$3"
     local RECOMPILE_DIR="$4"
 
-    local org_file_name
-    org_file_name=$(awk '/^apkFileName:/ {print $2}' "$DECOMPILED_DIR/apktool.yml")
+    local org_file_name=$(awk '/^apkFileName:/ {print $2}' "$DECOMPILED_DIR/apktool.yml")
     local name="${org_file_name%.*}"
     local ext="${org_file_name##*.}"
     local built_file="$RECOMPILE_DIR/${name}.$ext"
 	
+	if [ ! -d "$DECOMPILED_DIR" ]; then
+        echo -e "- ${RED} Directory not found:${NC} $DECOMPILED_DIR"
+        return 1
+    fi
+
     echo -e "${YELLOW}Recompiling:${NC} $DECOMPILED_DIR"
     java -jar "$APKTOOL" b "$DECOMPILED_DIR" --copy-original --frame-path "$FRAMEWORK_DIR" -o "$built_file"
     rm -rf "$DECOMPILED_DIR"
@@ -1575,7 +1586,7 @@ BUILD_PROP() {
     esac
 
     if [ ! -f "$FILE" ]; then
-        echo -e "build.prop not found: $FILE"
+        echo -e "- ${RED}File not found:${NC} $FILE"
         return 1
     fi
 
