@@ -1,22 +1,22 @@
 ![QuantumROM Logo](QuantumROM/logo/quantum_a34_logo.jpg)
 
-## 📌 Overview.
+## Overview.
 This Custom ROM is built by combining and refining features from multiple projects, including UNICA, Legacy-UI, and AstroRom.
 - The goal of this ROM is to provide a clean, optimized, and stable One UI experience with enhanced usability and performance.
 
-### 🛠️ Tools features.
-- Download firmware directly from samsung server.
-- File config and file contexts generate.
-- Extract and img build ( erofs and ext4 supported).
-
-### ✨ Key Features.
-- System Optimization.
+### QuantumROM Features.
+- System Optimization and Performance Boost.
 - UI Live Blur
 - Galaxy AI enabled (Across all Galaxy Apps).
 - Google photos unlimited backup.
 - Full Screen Always On Display (With User Toggle).
+- AOD Doze service.
 - Screenshot anywhere (enabled globally).
 - High End Animation.
+- Extra Brightness.
+- Smart Capture.
+- Samsung Vision Booster.
+- Palm Swipe Screenshot.
 - Heavy debloated system (Keeping Essential Apps and Services).
 - Improved performance and smoother UI experience.
 - Optimized background processes.
@@ -33,84 +33,18 @@ This Custom ROM is built by combining and refining features from multiple projec
 - JDM device support.
 - [BluetoothLibraryPatcher](https://github.com/3arthur6/BluetoothLibraryPatcher) integrated
 
-### 🔐 Security & Privacy.
+### Security & Privacy.
 - Secure Folder support.
 - Essential security components retained.
 - Stable and safe daily-driver experience.
 
-### 📱 One UI Experience.
-- Full One UI apps included.
-- Important system apps preserved.
-- AI features enabled.
-
-### 🎯 Project Goal.
+### Project Goal.
 - To deliver a lightweight yet fully featured Samsung One UI ROM that balances.
 - Performance.
 - Stability.
 - Essential Features.
 - Clean User Experience.
-
-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-## How to Use:
-#### 1. Fork the Repository.
-Give a ⭐ star to the repository.
-Fork the repository to your GitHub account.
-
-#### 2. Run the Workflow.
-Open your forked repository.
-- Go to the Actions tab.
-- Select QuantumROM Tools.
-- Click Run workflow.
-
-#### 3. Set Your Device Model.
-Update your device model in the STOCK_DEVICE_MODEL option.
-- If your model is available in /QuantumROM/Device folder of this repository, the tool will work for your device.
-- If your model is not present, set STOCK_DEVICE_MODEL to None.
-
-#### 4. Kernel BPF Version Option.
-Set this o
-ption to True if your kernel BPF version is 5.4 (lower than 5.10).
-- Otherwise, set it to False.
-
-#### 5. Set Target Device Information.
-- Configure the following options:
-- TARGET_DEVICE_MODEL
-- The device model from which you want to port the ROM.
-- TARGET_DEVICE_CSC
-- The country/region code used to download the target device firmware.
-- TARGET_DEVICE_IMEI
-- Required to download the target device firmware from the Samsung server.
-- Change the IMEI if you want to change the target device.
-
-#### 6. OUTPUT_FILESYSTEM (erofs / ext4).
-My tool can build images in two formats:
-- erofs
-  - Recommended if your device partition size is small.
-  - Saves storage space.
-  - Your kernel must support EROFS.
-- ext4
-  - Use this if your kernel does not support EROFS.
-  - The generated image will be larger in size.
-
-#### 7. Compress IMG to XZ (True / False).
-If set to True:
- - The generated image will be compressed to .xz format.
- - This reduces file size before uploading.
-
-If set to False:
- - The image will remain in its original format without compression.
-   
-#### 8. Add Git Credentials:
-In your forked repository, go to:
--Settings → Secrets and variables → Actions
-- Click **New repository secret**, then create a new secret:
-- Name:
-  - GIT_TOKEN
-  - Add git secret token and save.
-  - You can search on YouTube for a guide on how to create a GitHub Personal Access Token.
-  - If you do not add the `GIT_TOKEN`, the built ROM info and link will not be added to your repository's Release section. You will get link only in runner output.
-
+--------------------------------------------------------------------------------
 ### Credits:
 #### 1. Samsung Firmware Downloader.
 - martinetd
@@ -156,6 +90,9 @@ In your forked repository, go to:
 #### 8. GoFile Uploader.
 - Sushrut1101
 - https://github.com/Sushrut1101/GoFile-Upload
+
+#### 9. Performnce Mods.
+- rhn-1k
 
 ### Licensing.
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
