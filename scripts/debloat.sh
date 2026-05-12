@@ -26,7 +26,7 @@ DEBLOAT_APPS=(
 "Videos" "Music2"
 "ChromeCustomizations" "Velvet" "LocationHistory" "LocationSharing"
 
-"PrebuiltGemini"
+"PrebuiltGemini" 
 
 # --- Gmail (FULL REMOVAL) ---
 "Gmail" "Gmail2" "PrebuiltGmail" "GoogleMail" "GmailProvider"
@@ -62,8 +62,6 @@ DEBLOAT_APPS=(
 # ==========================================================
 # GAMING / VPN
 # ==========================================================
-
-"GameTools_Dream" "GameHome"
 "SamsungMax" "SamsungVPN"
 
 # ==========================================================
@@ -441,7 +439,7 @@ DEBLOAT() {
     rm -rf "$EXTRACTED_FIRM_DIR/system/system/preload"
 	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/mediasearch"
 	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/MediaSearch"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app"/GameDriver-*
+	#rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app"/GameDriver-*
 	rm -rf "$EXTRACTED_FIRM_DIR/system/system/tts"
 	rm -rf "$EXTRACTED_FIRM_DIR/product/app/Gmail2/oat"
     rm -rf "$EXTRACTED_FIRM_DIR/product/app/Maps/oat"
