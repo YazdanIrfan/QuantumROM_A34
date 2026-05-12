@@ -18,13 +18,14 @@ export make_ext4fs="$QT_DIR/bin/ext4/make_ext4fs"
 export e2fsdroid="$QT_DIR/bin/e2fsdroid/e2fsdroid"
 export mkfs_erofs="$QT_DIR/bin/erofs-utils/mkfs.erofs"
 export extract_erofs="$QT_DIR/bin/erofs-utils/extract.erofs"
+export imgextractor_py="$QT_DIR/bin/py_scripts/imgextractor.py"
 
-chmod +x $lpmake
-chmod +x $lpunpack
-chmod +x $e2fsdroid
-chmod +x $mkfs_erofs
-chmod +x $make_ext4fs
-chmod +x $extract_erofs
+chmod +x "$lpmake"
+chmod +x "$lpunpack"
+chmod +x "$e2fsdroid"
+chmod +x "$mkfs_erofs"
+chmod +x "$make_ext4fs"
+chmod +x "$extract_erofs"
 
 
 CHECK_FILE() {
@@ -340,28 +341,45 @@ EXTRACT_FIRMWARE_IMG() {
         fi
 
         local partition="$(basename "${imgfile%.img}")"
+        local ORG_IMG_SIZE=$(stat -c%s -- "$imgfile")
+
+        rm -rf "$FIRM_DIR/$partition"
+
+        if file -b "$imgfile" | grep -q "Android sparse image"; then
+            echo -e "- $partition.img is SPARSE. Converting to raw..."
+
+            local tmp_raw="${imgfile}.raw"
+
+            simg2img "$imgfile" "$tmp_raw" || {
+                echo "Failed to convert sparse image: $imgfile"
+                continue
+            }
+
+            rm -f "$imgfile"
+            mv "$tmp_raw" "$imgfile"
+        fi
+
         local fstype=$(blkid -o value -s TYPE "$imgfile")
         [ -z "$fstype" ] && fstype=$(file -b "$imgfile")
-		local IMG_SIZE=$(stat -c%s -- "$imgfile")
-
-		rm -rf "$FIRM_DIR/$partition"
 
         case "$fstype" in
             ext4)
-                echo -e "- $partition.img Detected ext4. Size: $IMG_SIZE bytes."
-                python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
+                echo -e "- $partition.img Detected ext4. Size: $ORG_IMG_SIZE bytes. Extracting..."
+                python3 "$imgextractor_py" "$imgfile" "$FIRM_DIR"
                 ;;
+
             erofs)
-                echo -e "- $partition.img Detected erofs. Size: $IMG_SIZE bytes. Extracting..."
-                "$extract_erofs" -i "$imgfile" -x -f -o "$FIRM_DIR" >/dev/null 2>&1
+                echo -e "- $partition.img Detected erofs. Size: $ORG_IMG_SIZE bytes. Extracting..."
+                "$extract_erofs" -i "$imgfile" -x -f -o "$FIRM_DIR"
                 ;;
-			f2fs)
-                echo -e "- $partition.img Detected f2fs. Size: $IMG_SIZE bytes. Converting to ext4"
-				bash "$(pwd)/scripts/convert_to_ext4.sh" "$imgfile"
-                python3 "$(pwd)/bin/py_scripts/imgextractor.py" "$imgfile" "$FIRM_DIR"
+
+            f2fs)
+                echo -e "- $partition.img Detected f2fs. Size: $ORG_IMG_SIZE bytes"
+                bash "$QT_DIR/scripts/extract_img.sh" "$imgfile" "$FIRM_DIR"
                 ;;
+
             *)
-                echo -e "- $partition.img unsupported filesystem type ($fstype), skipping"
+                echo -e "- $imgfile unsupported filesystem type ($fstype), skipping"
                 continue
                 ;;
         esac
@@ -514,7 +532,7 @@ RECOMPILE() {
     rm -rf "$DECOMPILED_DIR"
     
 	# Zipalign
-	# echo -e ""
+	# echo " "
 	# if [[ "$ext" == "apk" ]]; then
 	    # echo -e "${YELLOW}Zipaligning:${NC} $built_file to $final_file"
         # zipalign -v 4 "$built_file" "$final_file" >/dev/null 2>&1
@@ -1196,7 +1214,7 @@ UPDATE_FLOATING_FEATURE() {
 APPLY_CUSTOM_FLOATING_FEATURE() {
     echo " "
 
-    if [ "$#" -ne 1 ]; then
+    if [ "$#" -ne 3 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <FLOATING_FEATURE_FILE_DIRECTORY> <FLOATING_FEATURE_LINE> <VALUE>"
         return 1
     fi
@@ -1541,7 +1559,7 @@ APPLY_STOCK_CONFIG() {
 
 	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/init"/rscmgr*.rc
 	find "$EXTRACTED_FIRM_DIR/system/system/media" -maxdepth 1 -type f \( -iname "*.spi" -o -iname "*.qmg" -o -iname "*.txt" \) -delete
-	rm -rf $EXTRACTED_FIRM_DIR/product/overlay/framework-res*auto_generated_rro_product.apk
+	rm -rf "$EXTRACTED_FIRM_DIR"/product/overlay/framework-res*auto_generated_rro_product.apk
 	rm -rf $EXTRACTED_FIRM_DIR/product/overlay/SystemUI*auto_generated_rro_product.apk
 	cp -a "$DEVICES_DIR/$STOCK_DEVICE/Stock/." "$EXTRACTED_FIRM_DIR/"
     if [ -d "$DEVICES_DIR/$STOCK_DEVICE/extra" ]; then
@@ -1565,19 +1583,19 @@ BUILD_PROP() {
 
     case "$PARTITION" in
         system)
-            FILE="$EXTRACTED_FIRM_DIR/system/system/build.prop"
+            local FILE="$EXTRACTED_FIRM_DIR/system/system/build.prop"
             ;;
         vendor)
-            FILE="$EXTRACTED_FIRM_DIR/vendor/build.prop"
+            local FILE="$EXTRACTED_FIRM_DIR/vendor/build.prop"
             ;;
         product)
-            FILE="$EXTRACTED_FIRM_DIR/product/etc/build.prop"
+            local FILE="$EXTRACTED_FIRM_DIR/product/etc/build.prop"
             ;;
         system_ext)
-            FILE="$EXTRACTED_FIRM_DIR/system_ext/etc/build.prop"
+            local FILE="$EXTRACTED_FIRM_DIR/system_ext/etc/build.prop"
             ;;
         odm)
-            FILE="$EXTRACTED_FIRM_DIR/odm/etc/build.prop"
+            local FILE="$EXTRACTED_FIRM_DIR/odm/etc/build.prop"
             ;;
         *)
             echo -e "Unknown partition: $PARTITION"
@@ -1679,10 +1697,9 @@ APPLY_CUSTOM_FEATURES() {
 	local FLOATING_FEATURE_FILE_DIRECTORY="$EXTRACTED_FIRM_DIR/system/system/etc/floating_feature.xml"
 
 	if [ ! -d "$EXTRACTED_FIRM_DIR/system" ]; then
-		echo -e "No extracted firmware found."
+		echo "No extracted firmware found."
         return 1
     fi
-
     echo -e "${YELLOW}Applying usefull features.${NC}"
 	DISABLE_SECURITY "$EXTRACTED_FIRM_DIR"
 
@@ -2010,7 +2027,7 @@ GEN_FS_CONFIG() {
     for ROOT in "$EXTRACTED_FIRM_DIR"/*; do
         [ ! -d "$ROOT" ] && continue
 
-        PARTITION="$(basename "$ROOT")"
+        local PARTITION="$(basename "$ROOT")"
         [ "$PARTITION" = "config" ] && continue
 
         local FS_CONFIG="$EXTRACTED_FIRM_DIR/config/${PARTITION}_fs_config"
@@ -2018,7 +2035,7 @@ GEN_FS_CONFIG() {
 
         touch "$FS_CONFIG"
 
-        echo -e ""
+        echo " "
         echo -e "${YELLOW}Generating fs_config for partition:${NC} $PARTITION"
 
         awk '{print $1}' "$FS_CONFIG" | sort -u > "$TMP_EXISTING"
@@ -2082,14 +2099,13 @@ GEN_FILE_CONTEXTS() {
 
     for ROOT in "$EXTRACTED_FIRM_DIR"/*; do
         [ ! -d "$ROOT" ] && continue
-        local PARTITION
-        PARTITION="$(basename "$ROOT")"
+        local PARTITION="$(basename "$ROOT")"
         [ "$PARTITION" = "config" ] && continue
 
         local FILE_CONTEXTS="$EXTRACTED_FIRM_DIR/config/${PARTITION}_file_contexts"
         touch "$FILE_CONTEXTS"
 
-        echo -e ""
+        echo " "
         echo -e "${YELLOW}Generating file_contexts for partition:${NC} $PARTITION"
 
         declare -A EXISTING=()
@@ -2175,8 +2191,74 @@ BUILD_IMG() {
 			# Resize img to reduce size.
 			resize2fs -M "$OUT_IMG"
         else
-            echo -e "Unknown filesystem: $FILE_SYSTEM, skipping $PARTITION"
+            echo "Unknown filesystem: $FILE_SYSTEM, skipping $PARTITION"
             continue
         fi
     done
+}
+
+
+BUILD_SUPER_IMG() {
+    echo " "
+
+    IMG_DIR="$1"
+    OUTPUT_DIR="$2"
+    OUTPUT_IMG="$OUTPUT_DIR/super.img"
+    
+    echo "Building super.img..."
+
+    if [ ! -d "$IMG_DIR" ]; then
+        echo "- Input folder not found: $IMG_DIR"
+        return 1
+    fi
+
+    PARTITIONS=""
+    IMAGES=""
+    TOTAL_SIZE=0
+
+    rm -f "$OUTPUT_DIR/super.img"
+
+    for img in "$IMG_DIR"/*.img; do
+        [ -e "$img" ] || continue
+
+        name=$(basename "$img")
+
+        case "$name" in
+            boot.img|recovery.img|vbmeta.img|dtbo.img|userdata.img|cache.img|vendor_boot.img|super.img)
+                echo "- Skipping $name (not logical partition)"
+                continue
+                ;;
+        esac
+
+        part_name="${name%.img}"
+        size=$(stat -c%s "$img")
+
+        echo "- Adding $part_name ($size bytes)"
+
+        PARTITIONS="$PARTITIONS --partition ${part_name}:readonly:${size}:main"
+        IMAGES="$IMAGES --image ${part_name}=$img"
+
+        TOTAL_SIZE=$((TOTAL_SIZE + size))
+    done
+
+    TOTAL_SIZE=$((TOTAL_SIZE + 67108864))
+
+    echo "- Total super size: $TOTAL_SIZE bytes"
+
+    $lpmake \
+        --metadata-size 65536 \
+        --metadata-slots 2 \
+        --super-name super \
+        --device super:$TOTAL_SIZE \
+        --group main:$TOTAL_SIZE \
+        $PARTITIONS \
+        $IMAGES \
+        --output "$OUTPUT_IMG"
+
+    if [ $? -eq 0 ]; then
+        echo "- Done: $OUTPUT_IMG"
+    else
+        echo "- Failed to build super.img"
+        return 1
+    fi
 }
