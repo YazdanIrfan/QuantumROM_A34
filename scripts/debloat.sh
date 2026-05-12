@@ -1,157 +1,251 @@
 #!/bin/bash
 
 ###################################################################################################
+# COLORS
+###################################################################################################
 
 RED="\e[31m"
 YELLOW="\e[33m"
 NC="\e[0m"
 
+###################################################################################################
+# FINAL AGGRESSIVE DEBLOAT LIST (EXTREME MODE)
+###################################################################################################
 
-# GENERAL / SYSTEM / BLOAT
 DEBLOAT_APPS=(
-"HMT" "PaymentFramework" "DigitalWellbeing" "FactoryCameraFB"
-"WlanTest" "AirGlance" "AirReadingGlass" "AndroidGlassesCore"
-"SOAgent77" "ARCore" "ARDrawing" "ARZone" "BGMProvider"
-"SingleTakeService" "BixbyWakeup" "BlockchainBasicKit"
-"Cameralyzer" "DictDiotekForSec" "EasymodeContactsWidget81"
-"Fast" "FunModeSDK" "GearManagerStub" "KidsHome_Installer"
-"LinkSharing_v11" "LiveDrawing" "MAPSAgent" "MdecService"
-"MinusOnePage" "MoccaMobile" "Netflix_stub" "Notes40"
-"ParentalCare" "PhotoTable" "SmartReminder" "SmartSwitchStub"
-"UnifiedWFC" "UniversalMDMClient" "VideoEditorLite_Dream_N"
-"VisionIntelligence3.7" "VoiceAccess" "VTCameraSetting"
-"WebManual" "WifiGuider" "AutomationTest_FB" "FactoryTestProvider"
-)
 
+# ==========================================================
+# GOOGLE / AOSP CORE
+# ==========================================================
 
-# KOREAN / CARRIER APPS
-CARRIER_APPS=(
-"KTAuth" "KTCustomerService" "KTUsimManager"
-"LGUMiniCustomerCenter" "LGUplusTsmProxy"
-"SKTMemberShip_new" "SktUsimService" "TWorld"
-"KT114Provider2" "KTHiddenMenu" "KTOneStore"
-"KTServiceAgent" "KTServiceMenu"
-"LGUGPSnWPS" "LGUHiddenMenu" "LGUOZStore"
-"SKTFindLostPhone" "SKTHiddenMenu" "SKTMemberShip"
-"SKTOneStore" "SKTFindLostPhoneApp"
-"TPhoneOnePackage" "TPhoneSetup" "TService"
-"UsimRegistrationKOR"
-)
+"SpeechServicesByGoogle" "LiveTranscribe" "DigitalWellbeing"
+"Maps" "Duo" "Photos" "AssistantShell" "BardShell" "DuoStub"
+"GoogleCalendarSyncAdapter" "AndroidDeveloperVerifier" "GoogleRestore"
+"SearchSelector" "VoiceAccess"
 
+"Videos" "Music2"
+"ChromeCustomizations" "Velvet" "LocationHistory" "LocationSharing"
 
-# SAMSUNG FEATURES / APPS
-SAMSUNG_APPS=(
-"SamsungCalendar" "SamsungTTS" "SamsungBilling"
-"OneDrive_Samsung_v3" "SamsungCarKeyFw"
-"SamsungPass" "SamsungSmartSuggestions"
-"SamsungPassAutofill_v1"
-"AirCommand" "AppUpdateCenter" "AREmoji"
-"AREmojiEditor" "AutoDoodle" "AvatarEmojiSticker"
-"AvatarEmojiSticker_S" "AvatarPicker"
-"GalleryWidget" "LiveStickers" "StoryService"
-"StickerFaceARAvatar" "sticker"
-)
+"PrebuiltGemini"
 
+# --- Gmail (FULL REMOVAL) ---
+"Gmail" "Gmail2" "PrebuiltGmail" "GoogleMail" "GmailProvider"
 
-# SAMSUNG AI / SMART
-SAMSUNG_AI=(
-"LiveTranscribe" "Bixby" "BixbyInterpreter"
+# --- Google Drive (FULL REMOVAL) ---
+"Drive" "Drive_Android" "GoogleDrive" "DriveSync"
+
+# --- Google Chrome (FULL REMOVAL) ---
+"Chrome" "ChromePublic" "GoogleChrome" "ChromeCustomizations"
+
+# --- YouTube (ADDED) ---
+"YouTube" "YouTubeMusic" "PrebuiltYouTube" "YouTubeStub"
+
+# ==========================================================
+# SAMSUNG CORE
+# ==========================================================
+
+"SamsungCalendar" "Notes40" "SamsungMembers" "Tips" "VoiceNote_5.0"
+
+# ==========================================================
+# SAMSUNG ECOSYSTEM
+# ==========================================================
+
+"MdecService" "LinkToWindowsService"
+"SmartSwitchStub" "OneDrive_Samsung_v3"
+
+# ==========================================================
+# KNOX
+# ==========================================================
+
+"KnoxEnrollmentService" "KnoxPushManager" "KLMSAgent"
+
+# ==========================================================
+# GAMING / VPN
+# ==========================================================
+
+"GameTools_Dream" "GameHome"
+"SamsungMax" "SamsungVPN"
+
+# ==========================================================
+# CAMERA / AR
+# ==========================================================
+
+"ARCore" "ARDrawing" "ARZone" "AREmoji" "AREmojiEditor"
+"AvatarEmojiSticker" "AvatarEmojiSticker_S" "StickerFaceARAvatar"
+"LiveStickers"
+
+# ==========================================================
+# BIXBY
+# ==========================================================
+
+"Bixby" "BixbyWakeup" "BixbyInterpreter"
 "BixbyVisionFramework3.5" "SettingsBixby"
-"SmartEye" "SmartPush" "SmartPush_64"
-"SmartThingsKit" "SmartTouchCall"
-"VisionIntelligence3.7"
+
+# ==========================================================
+# ANALYTICS
+# ==========================================================
+
+"DiagMonAgent" "SamsungAnalytics"
+"SOAgent7" "SOAgent75" "SOAgent76" "SOAgent77"
+
+# ==========================================================
+# UI / FEATURES
+# ==========================================================
+
+"EdgeLighting" "PeopleStripe" "AirGlance" "AirReadingGlass"
+"SmartSuggestions" "SamsungSmartSuggestions"
+
+# ==========================================================
+# MULTIMEDIA / SYSTEM APPS
+# ==========================================================
+
+"LiveDrawing" "PhotoTable" "VideoEditorLite_Dream_N"
+"GalleryWidget" "KidsHome_Installer" "ParentalCare"
+"SmartReminder" "SmartPush" "SmartPush_64"
+"MinusOnePage" "MoccaMobile" "VisionIntelligence3.7"
+"VTCameraSetting" "HashTagService" "LedCoverService"
+"MemorySaver_O_Refresh" "OMCAgent5" "StoryService"
+"SumeNNService" "SolarAudio-service"
+"SPPPushClient" "sticker" "Fast" "FunModeSDK"
+
+# ==========================================================
+# VOICE / AUDIO
+# ==========================================================
+
+"SVoiceIME" "SamsungTTS"
+
+# ==========================================================
+# CONNECTIVITY / SHARING (CORE)
+# ==========================================================
+
+"LinkSharing_v11"
+
+# ==========================================================
+# SAMSUNG FEATURE STACK REMOVAL
+# ==========================================================
+
+"MusicShare" "MusicShareService" "MusicShareClient"
+
+"QuickShare" "QuickShareService" "NearbyShare" "NearbyService"
+
+"AutoSwitchBuds" "AutoSwitchBudsService"
+
+"SmartView" "ScreenMirroring" "MirroringService"
+
+"SmartThingsKit" "SmartThingsFramework" "SmartThingsService"
+"SmartThings" "SmartThingsAgent" "SmartThingsCore"
+
+# ==========================================================
+# MULTI DEVICE / CONTINUITY
+# ==========================================================
+
+"MultiControl" "MultiConnectivity"
+"DeviceContinuity" "SamsungMultiConnectivity"
+"ContinueOnOtherDevices" "SamsungContinuityService"
+
+# ==========================================================
+# ANDROID AUTO
+# ==========================================================
+
+"AndroidAuto" "AndroidAutoStub" "CarIntegrationService"
+
+# ==========================================================
+# OTA / UPDATES
+# ==========================================================
+
+"FotaAgent" "FotaService" "FotaClient"
+"SoftwareUpdate" "SoftwareUpdateUI"
+"SystemUpdate" "Updater" "UpdateService"
+"SDMService" "RemoteUpdateService"
+"UpdateEngine" "UpdateEngineService"
+"RecoverySystem"
+"KnoxUpdateAgent" "DevicePolicyUpdate" "MDMUpdateService"
+
+# ==========================================================
+# CARRIER APPS
+# ==========================================================
+
+"KTAuth" "KTCustomerService" "KTUsimManager"
+"KTServiceAgent" "KTServiceMenu" "KT114Provider2"
+"KTHiddenMenu" "KTOneStore"
+
+"SKTMemberShip" "SKTMemberShip_new"
+"SKTFindLostPhone" "SKTFindLostPhoneApp"
+"SKTHiddenMenu" "SKTOneStore" "SktUsimService"
+
+"LGUMiniCustomerCenter" "LGUplusTsmProxy"
+"LGUGPSnWPS" "LGUHiddenMenu" "LGUOZStore"
+
+"TWorld" "TService" "TPhoneOnePackage" "TPhoneSetup"
+
+# ==========================================================
+# SYSTEM COMPONENTS
+# ==========================================================
+
+"BluetoothMidiService" "PrintSpooler" "WebManual"
+"WifiGuider" "UltraDataSaving_O" "Upday"
+
+# ==========================================================
+# FACEBOOK / PRELOAD
+# ==========================================================
+
+"FBAppManager_NS" "FBInstaller_NS" "FBServices"
+"Netflix_stub"
+
+# ==========================================================
+# EXTRA SYSTEM APPS
+# ==========================================================
+
+"SetupIndiaServicesTnC"
+"SamsungPass" "SamsungPassAutofill_v1"
+"SamsungBilling" "UniversalMDMClient"
+"Discover" "DiscoverSEP"
+"DigitalKey"
+"SamsungCarKeyFw"
+
+# ==========================================================
+# ACCESSIBILITY
+# ==========================================================
+
+"TalkbackSE" "SwiftkeyIme"
+
+# ==========================================================
+# LOW LEVEL SYSTEM
+# ==========================================================
+
+"vexfwk_service" "VexScanner" "LiveEffectService"
+
+# ==========================================================
+# USER REMOVED
+# ==========================================================
+
+"AppCloud" "SamsungStore" "MyGalaxy"
+
+# ==========================================================
+# UI / SYSTEM INTELLIGENCE LAYER REMOVAL
+# ==========================================================
+
+"SamsungDeX" "DexSystemUI" "DesktopMode" "DesktopModeUI"
+"SamsungFree"
+
+"OneUIHome_Routines" "BixbyRoutines"
+
+"ADPersonalizationService" "SamsungAds" "MarketingService" "CustomService"
+
+"EdgePanels" "TaskEdge" "OneHandOperationPlus"
+
+"Finder"
+
+"BixbyHome"
+
+"AppPredictionService" "ContextService" "IntelligenceService"
+"PersonalizationFramework" "UsagePatternsService"
+
 )
 
-
-# GOOGLE APPS
-GOOGLE_APPS=(
-"SpeechServicesByGoogle" "Maps" "Duo" "Photos"
-"AssistantShell" "BardShell" "DuoStub"
-"GoogleCalendarSyncAdapter" "AndroidDeveloperVerifier"
-"YourPhone_Stub" "AndroidAutoStub"
-"AndroidSystemIntelligence" "GoogleRestore"
-"SamsungMessages" "SearchSelector" "PlayAutoInstallConfig"
-)
-
-
-# FACEBOOK
-FACEBOOK_APPS=("FBAppManager_NS" "FBInstaller_NS" "FBServices")
-
-
-# DRIVERS
-HARDWARE_DRIVERS=("DevGPUDriver-EX2200" "GameDriver-EX2100" "GameDriver-EX2200" "GameDriver-SM8150")
-
-
-# MISC / SERVICES
-MISC_SERVICES=(
-"AuthFramework" "Discover" "DiscoverSEP"
-"EarphoneTypeC" "EasySetup" "FotaAgent"
-"HashTagService" "LedCoverService"
-"LinkToWindowsService" "MemorySaver_O_Refresh"
-"MultiControl" "MultiControlVP6"
-"OMCAgent5" "OneStoreService" "FactoryAirCommandManager"
-"SOAgent7" "SOAgent75" "SOAgent76"
-"SolarAudio-service" "SPPPushClient"
-"SumeNNService" "SVoiceIME"
-"SwiftkeyIme" "SwiftkeySetting"
-"SystemUpdate" "TADownloader"
-"TalkbackSE" "TaPackAuthFw"
-"UltraDataSaving_O" "Upday"
-"YourPhone_P1_5" "DsmsAPK"
-"vexfwk_service" "VexScanner"
-"LiveEffectService" "MyGalaxyService"
-)
-
-
-# Knox
-KNOX_APPS=("Rampart" "KnoxFrameBufferProvider")
-
-
-REMOVE_ESIM_FILES() {
-    if [ "$#" -ne 1 ]; then
-        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
-        return 1
-    fi
-
-	local EXTRACTED_FIRM_DIR="$1"
-    echo -e "- Removing ESIM files."
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/autoinstalls/autoinstalls-com.google.android.euicc"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/default-permissions/default-permissions-com.google.android.euicc.xml"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-com.samsung.euicc.xml"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-com.samsung.android.app.esimkeystring.xml"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/privapp-permissions-com.samsung.android.app.telephonyui.esimclient.xml"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/privapp-permissions-com.samsung.android.app.telephonyui.esimclient.xml"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/sysconfig/preinstalled-packages-com.samsung.euicc.xml"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/sysconfig/preinstalled-packages-com.samsung.android.app.esimkeystring.xml"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/EsimClient"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/EsimKeyString"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/EuiccService"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/EuiccGoogle"
-}
-
-
-REMOVE_FABRIC_CRYPTO() {
-    if [ "$#" -ne 1 ]; then
-        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
-        return 1
-    fi
-
-	local EXTRACTED_FIRM_DIR="$1"
-    echo -e "- Removing fabric crypto."
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/bin/fabric_crypto"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/init/fabric_crypto.rc"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/permissions/FabricCryptoLib.xml"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/vintf/manifest/fabric_crypto_manifest.xml"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/framework/FabricCryptoLib.jar"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/framework/oat/arm/FabricCryptoLib.odex"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/framework/oat/arm/FabricCryptoLib.vdex"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/framework/oat/arm64/FabricCryptoLib.odex"
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/framework/oat/arm64/FabricCryptoLib.vdex"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/lib64/com.samsung.security.fabric.cryptod-V1-cpp.so"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/lib64/vendor.samsung.hardware.security.fkeymaster-V1-ndk.so"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/KmxService"
-}
-
+###################################################################################################
+# REMOVE APPS
+###################################################################################################
 
 KICK() {
     if [ "$#" -lt 2 ]; then
@@ -164,10 +258,10 @@ KICK() {
     local APPS_LIST=("$@")
 
     local APP_DIRS=(
-        "$EXTRACTED_FIRM_DIR/system/system/app"
-        "$EXTRACTED_FIRM_DIR/system/system/priv-app"
-        "$EXTRACTED_FIRM_DIR/product/app"
-        "$EXTRACTED_FIRM_DIR/product/priv-app"
+        "$DIR/system/system/app"
+        "$DIR/system/system/priv-app"
+        "$DIR/product/app"
+        "$DIR/product/priv-app"
     )
 
     for app in "${APPS_LIST[@]}"; do
@@ -181,6 +275,132 @@ KICK() {
     done
 }
 
+###################################################################################################
+# REMOVE ESIM FILES
+###################################################################################################
+
+REMOVE_ESIM_FILES() {
+    local DIR="$1"
+    echo "- Removing ESIM components."
+
+    rm -rf "$DIR/system/system/etc/autoinstalls/autoinstalls-com.google.android.euicc"
+    rm -rf "$DIR/system/system/etc/default-permissions/default-permissions-com.google.android.euicc.xml"
+    rm -rf "$DIR/system/system/etc/permissions/privapp-permissions-com.samsung.euicc.xml"
+    rm -rf "$DIR/system/system/etc/sysconfig/preinstalled-packages-com.samsung.euicc.xml"
+
+    rm -rf "$DIR/system/system/priv-app/EsimClient"
+    rm -rf "$DIR/system/system/priv-app/EuiccService"
+}
+
+###################################################################################################
+# REMOVE FABRIC CRYPTO
+###################################################################################################
+
+REMOVE_FABRIC_CRYPTO() {
+    local DIR="$1"
+    echo "- Removing Fabric Crypto."
+
+    rm -rf "$DIR/system/system/bin/fabric_crypto"
+    rm -rf "$DIR/system/system/etc/init/fabric_crypto.rc"
+    rm -rf "$DIR/system/system/etc/permissions/FabricCryptoLib.xml"
+    rm -rf "$DIR/system/system/etc/vintf/manifest/fabric_crypto_manifest.xml"
+    rm -rf "$DIR/system/system/framework/FabricCryptoLib.jar"
+    rm -rf "$DIR/system/system/lib64/com.samsung.security.fabric.cryptod-V1-cpp.so"
+    rm -rf "$DIR/system/system/lib64/vendor.samsung.hardware.security.fkeymaster-V1-ndk.so"
+    rm -rf "$DIR/system/system/priv-app/KmxService"
+}
+
+###################################################################################################
+# OTA INFRASTRUCTURE REMOVAL
+###################################################################################################
+
+REMOVE_OTA_INFRASTRUCTURE() {
+    local DIR="$1"
+    echo "- Removing OTA infrastructure."
+
+    rm -rf "$DIR/system/system/etc/permissions/*update*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*update*"
+    rm -rf "$DIR/system/system/etc/init/*update*"
+
+    rm -rf "$DIR/system/system/bin/update_engine*"
+    rm -rf "$DIR/system/system/lib*/libupdate_engine*"
+
+    rm -rf "$DIR/system/system/priv-app/FotaAgent"
+    rm -rf "$DIR/system/system/priv-app/FotaService"
+    rm -rf "$DIR/system/system/priv-app/KnoxUpdateAgent"
+    rm -rf "$DIR/system/system/priv-app/SDMService"
+}
+
+###################################################################################################
+# SYSTEM FEATURE STRIP
+###################################################################################################
+
+REMOVE_SYSTEM_FEATURES() {
+    local DIR="$1"
+    echo "- Removing system feature configs."
+
+    rm -rf "$DIR/system/system/etc/permissions/*dex*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*dex*"
+
+    rm -rf "$DIR/system/system/etc/permissions/*ads*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*ads*"
+
+    rm -rf "$DIR/system/system/etc/permissions/*intelligence*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*intelligence*"
+
+    rm -rf "$DIR/system/system/etc/permissions/*context*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*context*"
+
+    rm -rf "$DIR/system/system/etc/permissions/*edge*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*edge*"
+
+    rm -rf "$DIR/system/system/etc/permissions/*finder*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*finder*"
+
+    rm -rf "$DIR/system/system/etc/permissions/*free*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*free*"
+
+    rm -rf "$DIR/system/system/etc/permissions/*bixby*"
+    rm -rf "$DIR/system/system/etc/sysconfig/*bixby*"
+}
+
+###################################################################################################
+# CLEAN RESIDUAL FILES
+###################################################################################################
+
+CLEAN_RESIDUAL_FILES() {
+    local DIR="$1"
+    echo "- Cleaning residual files."
+
+    find "$DIR/product/app" -type d -name "oat" -exec rm -rf {} +
+    find "$DIR/product/priv-app" -type d -name "oat" -exec rm -rf {} +
+
+    rm -rf "$DIR/system/system/etc/sync"
+    rm -rf "$DIR/system/system/log"
+    rm -rf "$DIR/system/system/preload"
+    rm -rf "$DIR/system/system/tts"
+    rm -rf "$DIR/system/system/hidden"
+    rm -rf "$DIR/system/system/etc/mediasearch"
+    rm -rf "$DIR/system/system/priv-app/MediaSearch"
+
+    rm -rf "$DIR/product/app/SpeechServicesByGoogle/oat"
+    rm -rf "$DIR/product/priv-app"/HotwordEnrollment*
+}
+
+###################################################################################################
+# BUILD PROP OPTIMIZATION
+###################################################################################################
+
+OPTIMIZE_BUILD_PROP() {
+    local FILE="$1/system/system/build.prop"
+
+    grep -q "persist.sys.logd.enable" "$FILE" || echo "persist.sys.logd.enable=0" >> "$FILE"
+    grep -q "windowsmgr.max_events_per_sec" "$FILE" || echo "windowsmgr.max_events_per_sec=90" >> "$FILE"
+}
+
+###################################################################################################
+# MAIN
+###################################################################################################
 
 DEBLOAT() {
     echo -e ""
