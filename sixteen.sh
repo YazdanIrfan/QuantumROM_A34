@@ -41,6 +41,8 @@ PATCH_SELINUX "$FIRM_DIR/$TARGET_DEVICE"
 DISABLE_SECURITY "$FIRM_DIR/$TARGET_DEVICE"
 ADD_FLAGSHIP_APPS "$FIRM_DIR/$TARGET_DEVICE"
 APPLY_CUSTOM_FEATURES "$FIRM_DIR/$TARGET_DEVICE"
+APPLY_BLUR_FIX "$FIRM_DIR/$TARGET_DEVICE"
+#APPLY_S25_WALLPAPER "$FIRM_DIR/$TARGET_DEVICE"
 
 INSTALL_FRAMEWORK "$APKTOOL" "$FIRM_DIR/$TARGET_DEVICE/system/system/framework/framework-res.apk"
 
@@ -62,7 +64,7 @@ mv -f "$WORK_DIR"/*.jar "$FIRM_DIR/$TARGET_DEVICE/system/system/framework/"
 PATCH_BT_LIB "$FIRM_DIR/$TARGET_DEVICE" "$WORK_DIR"
 
 D_ID="$(grep -m1 '^ro.build.display.id=' "$FIRM_DIR/$TARGET_DEVICE/system/system/build.prop" | cut -d= -f2 | tr -d '\r')"
-BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "system" "ro.build.display.id" "${D_ID} V-${VERSION}: Build with Quantum Tools"
-BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "product" "ro.build.display.id" "${D_ID} V-${VERSION}: Build with Quantum Tools"
+BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "system" "ro.build.display.id" "${D_ID} QuantumRom V-${VERSION}.1.0"
+BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "product" "ro.build.display.id" "${D_ID} QuantumRom V-${VERSION}.1.0"
 
 BUILD_IMG "$FIRM_DIR/$TARGET_DEVICE" "$OUTPUT_FILESYSTEM" "$OUT_DIR"

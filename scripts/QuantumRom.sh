@@ -1331,6 +1331,10 @@ APPLY_CUSTOM_FLOATING_FEATURE() {
     #============= AI ==========#
     sed -i '/SEC_FLOATING_FEATURE_COMMON_DISABLE_NATIVE_AI/d' "$FLOATING_FEATURE_FILE_DIRECTORY"
     UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_VISION_SUPPORT_AI_MY_FAVORITE_CONTENTS" "TRUE"
+	UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_COMMON_SUPPORT_NOTE_ASSIST" "TRUE"
+	UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_FRAMEWORK_SUPPORT_SMART_CAPTURE" "TRUE"
+	UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_SYSTEMUI_SUPPORT_SCREENSHOT_NOTIFICATION" "TRUE"
+	
 
 	#============= OCR ==========#
     sed -i '/SEC_FLOATING_FEATURE_CAMERA_CONFIG_OCR_ENGINE_UNSUPPORT /d' "$FLOATING_FEATURE_FILE_DIRECTORY"
@@ -1362,7 +1366,12 @@ APPLY_CUSTOM_FLOATING_FEATURE() {
     UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_SYSTEM_SUPPORT_ENHANCED_PROCESSING" "TRUE"
 
     #========== LAUNCHER ==========#
+	
     UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_LAUNCHER_SUPPORT_CLOCK_LIVE_ICON" "TRUE"
+	UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_LAUNCHER_CONFIG_ANIMATION_TYPE" "CNHighEnd"
+
+	#========== DISPLAY ==========#
+	UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_LCD_SUPPORT_EXTRA_BRIGHTNESS" "TRUE"
 
     #========== AOD ==========#
 	if [ -d "$FIRM_DIR/$TARGET_DEVICE/system/system/priv-app"/AODService_* ]; then
@@ -1381,6 +1390,60 @@ APPLY_CUSTOM_FLOATING_FEATURE() {
     UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_GENAI_SUPPORT_SMART_LASSO" "TRUE"
     UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_GENAI_SUPPORT_SPOT_FIXER" "TRUE"
     UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_GENAI_SUPPORT_STYLE_TRANSFER" "TRUE"
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_GENAI_SUPPORT_TIME_WEATHER_WALLPAPER" "TRUE"
+
+
+
+
+	#======= Extra Features ======#
+	
+	#============= MULTIWINDOW ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_COMMON_SUPPORT_MULTIWINDOW" "TRUE"
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_COMMON_SUPPORT_MULTIWINDOW_SMART_POPUP_VIEW" "TRUE"
+
+    #============= SMART WIDGETS ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_LAUNCHER_SUPPORT_SMART_WIDGET" "TRUE"
+
+    #============= GALLERY ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_GALLERY_SUPPORT_PHOTO_REMASTER" "TRUE"
+
+    #============= AUDIO ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_ADAPT_SOUND" "TRUE"
+
+    #============= GAMING ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_GAMING_SUPPORT_GAMEBOOSTER" "TRUE"
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_GAMING_SUPPORT_PRIORITY_MODE" "TRUE"
+
+    #============= DISPLAY ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_LCD_SUPPORT_VISION_BOOSTER" "TRUE"
+
+    #============= MEMORY ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_MEMORY_SUPPORT_RAM_PLUS" "TRUE"
+
+    #============= CAMERA ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_CAMERA_SUPPORT_QRCODE_SCANNER" "TRUE"
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_CAMERA_SUPPORT_DOCUMENT_SCAN" "TRUE"
+
+    #============= SCREENSHOT ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_FRAMEWORK_SUPPORT_SCREEN_CAPTURE" "TRUE"
+
+    #============= AOD ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_FRAMEWORK_SUPPORT_AOD_DOZE_SERVICE" "TRUE"
+
+    #============= LIVE ICONS ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_LAUNCHER_SUPPORT_CALENDAR_LIVE_ICON" "TRUE"
+
+    #============= SECURITY ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_COMMON_SUPPORT_SECURE_WIFI" "TRUE"
+
+    #============= AI WALLPAPER ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_COMMON_SUPPORT_AI_WALLPAPER" "TRUE"
+
+    #============= CLIPBOARD ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_COMMON_SUPPORT_CLIPBOARD_EDGE" "TRUE"
+
+    #============= NOTIFICATION HISTORY ==========#
+    UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_SYSTEMUI_SUPPORT_NOTIFICATION_HISTORY" "TRUE"
 }
 
 
@@ -1748,14 +1811,116 @@ ADD_FLAGSHIP_APPS() {
 		echo "No extracted firmware found."
         return 1
     fi
+    echo -e "${YELLOW}Applying usefull features.${NC}"
+	DISABLE_SECURITY "$EXTRACTED_FIRM_DIR"
 
-    echo -e "- Adding China smart manager."
-	rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/AppLock"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/Firewall"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/SmartManager_v5"
-    rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/SmartManagerCN"
-	cp -rfa "$(pwd)/QuantumROM/Mods/SMART_MANAGER_CN/." "$EXTRACTED_FIRM_DIR/"
-	UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_SMARTMANAGER_CONFIG_PACKAGE_NAME" "com.samsung.android.sm_cn"
+	echo -e "- Adding build prop tweak."
+	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.frp.pst"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.product.locale" "en-US"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "wifi.interface" "wlan0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "wlan.wfd.hdcp" "disabled"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.hwui.renderer" "skiavk"
+	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.telephony.sim_slots.count" "2"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.surface_flinger.protected_contents" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "persist.audio.voip.enabled" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "persist.vendor.audio.voip" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "persist.audio.recording.voip" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.atrace.app_%d" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.atrace.app_number" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.atrace.prefer_sdk" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.atrace.tags.enableflags" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.atrace.user_initiated" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.documentscan.loglevel" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.documentscan.timelog" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.egl.trace" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.egl.traceGpuCompletion" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.hdr.log.hdr10plus" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.hwui.skia_tracing_enabled" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.hwui.trace_gpu_resources" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.incremental.enforce_readlogs_max_interval_for_system_dataloaders" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.incremental.readlogs_max_interval_sec" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.log" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.printbacktraceselfkill" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tflite.trace" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.thirdpartylogs.enabled" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing.ctl.hwui.skia_tracing_enabled" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing.ctl.hwui.skia_use_perfetto_track_events" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing.ctl.perfetto.sdk_sysprop_guard_generation" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing.ctl.renderengine.skia_tracing_enabled" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing.ctl.renderengine.skia_use_perfetto_track_events" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing.screen_brightness" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.tracing.screen_state" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.unihal.logStatus" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.vulkan.profiler.apitrace" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "dalvik.vm.systemuicompilerfilter" "speed"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "persist.adb.notify" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.surface_flinger.max_frame_buffer_acquired_buffers" "4"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.hwui.use_triple_buffering" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "debug.sf.enable_gl_backpressure" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.critical_upgrade" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.swap_compression_ratio" "3"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.filecache_min_kb" "200600"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.swap_util_max" "85"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.psi_complete_stall_ms" "200"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.psi_partial_stall_ms" "200"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.swap_free_low_percentage" "10"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.stall_limit_critical" "40"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.thrashing_limit" "30"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.thrashing_limit_decay" "50"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.lmk.use_psi" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.2nd.dha_cached_max" "12"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.2nd.dha_empty_max" "24"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.2nd.freelimit_val" "10"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.2nd.swap_free_low_percentage" "10"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.2nd.upgrade_pressure" "1000"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.allied_proc_protect" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.base_swaptotal" "4096"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.beks_enable" "false"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.beks_key" "166"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.c_deadline_zone_on_off" "false"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.cam_kill_start_minutes" "30"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.chimera.protect_activitytime_ms" "600000"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.chimera_strategy_4gb" "0,0,0,0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.chimera_strategy_6gb" "0,0,0,0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.chimera.quickreclaim_enable" "false"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.chimera.quickreclaim_big_game_enable" "false"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.chimera_quota_enable" "false"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dec_EFK_enable" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_2ndprop_thMB" "4096"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_cached_min" "4"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_cached_max" "16"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_dialer_except_th" "2048"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_empty_init" "12"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_empty_min" "8"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_empty_max" "24"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_lmk_array" "8940,11649,14359,18017,27768,38398"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_lmk_scale" "0.3"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_pwhl_key" "0"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.dha_th_rate" "3.5"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.enable_reentry_lmk" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.enable_upgrade_criadj" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.enable_userspace_lmk" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.fha_enable" "false"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.freelimit_val" "10"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.kill_heaviest_task" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.max_snapshot_num" "3"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.plg_key" "4"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.psi_critical" "160"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.swap_free_low_percentage" "10"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.trim_sec_policy" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.upgrade_pressure" "1000"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.use_bg_keeping_policy" "false"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.use_bg_keeping_policy_light" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.use_camera_boost" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.slmk.use_lowmem_keep_except" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "audio.safemedia.bypass" "true"
+    BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "persist.vendor.camera.expose.aux" "1"
+	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "fw.show_multiuserui" "1"
+	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "fw.max_users" "5"
+	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.config.iccc_version" "iccc_disabled"
+	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.config.dmverity" "false"
+
 
 	echo -e "- Adding full OneUI and important apps."
 	if [ ! -d "$EXTRACTED_FIRM_DIR/product/priv-app/AiWallpaper" ]; then
@@ -1872,6 +2037,148 @@ DECODE_OMC() {
     java -jar "$omc_decoder" -i "$CSC_DIR" -o "${WORK_DIR}/optics_decoded"
 }
 
+# Optimized Live blur 
+APPLY_BLUR_FIX() {
+    local ROM_DIR="$1"
+
+    echo "[*] Applying Live Blur (Stable SurfaceFlinger Mode)..."
+
+    # Detect correct system path
+    if [ -d "$ROM_DIR/system/system" ]; then
+        SYSTEM_DIR="$ROM_DIR/system/system"
+    else
+        SYSTEM_DIR="$ROM_DIR/system"
+    fi
+
+    # Create required dirs
+    mkdir -p "$SYSTEM_DIR/bin"
+    mkdir -p "$SYSTEM_DIR/lib64"
+    mkdir -p "$SYSTEM_DIR/etc"
+
+    #########################################################
+    # KEEP CUSTOM SURFACEFLINGER (REQUIRED FOR BLUR)
+    #########################################################
+
+    cp -f QuantumROM/Mods/Blur_Fix/system/bin/surfaceflinger "$SYSTEM_DIR/bin/"
+    chmod 755 "$SYSTEM_DIR/bin/surfaceflinger"
+    chcon u:object_r:system_file:s0 "$SYSTEM_DIR/bin/surfaceflinger" 2>/dev/null || true
+
+    #########################################################
+    # BLUR LIBS
+    #########################################################
+
+    cp -f QuantumROM/Mods/Blur_Fix/system/lib64/libgui.so "$SYSTEM_DIR/lib64/"
+    cp -f QuantumROM/Mods/Blur_Fix/system/lib64/libui.so "$SYSTEM_DIR/lib64/"
+
+    chmod 644 "$SYSTEM_DIR/lib64/libgui.so"
+    chmod 644 "$SYSTEM_DIR/lib64/libui.so"
+
+    chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libgui.so" 2>/dev/null || true
+    chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libui.so" 2>/dev/null || true
+
+    echo "[*] SurfaceFlinger + Blur libs installed"
+
+    #########################################################
+    # FLOATING FEATURE (LOW = STABILITY)
+    #########################################################
+
+    FLOATING_FEATURE="$SYSTEM_DIR/etc/floating_feature.xml"
+
+    if [ -f "$FLOATING_FEATURE" ]; then
+        echo "[*] Configuring blur features..."
+
+        sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG/d' "$FLOATING_FEATURE"
+        sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_DYNAMIC_RANGE/d' "$FLOATING_FEATURE"
+        sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY/d' "$FLOATING_FEATURE"
+
+        sed -i '/<\/SecFloatingFeatureSet>/i \
+    <SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG>TRUE</SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG>' "$FLOATING_FEATURE"
+
+        sed -i '/<\/SecFloatingFeatureSet>/i \
+    <SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_DYNAMIC_RANGE>TRUE</SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_DYNAMIC_RANGE>' "$FLOATING_FEATURE"
+
+        # IMPORTANT: LOW prevents reboot
+        sed -i '/<\/SecFloatingFeatureSet>/i \
+    <SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY>LOW</SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY>' "$FLOATING_FEATURE"
+
+        echo "[*] Blur set to LOW (stability mode)"
+    else
+        echo "[WARNING] floating_feature.xml not found"
+    fi
+
+    #########################################################
+    # SAFE PERFORMANCE TUNING (NO CRASH FLAGS)
+    #########################################################
+
+    echo "[*] Applying safe tuning..."
+
+    cat <<EOF >> "$SYSTEM_DIR/build.prop"
+
+# ===== LIVE BLUR =====
+
+# SurfaceFlinger stability
+debug.sf.latch_unsignaled=1
+debug.sf.enable_hwc_vds=1
+
+# HWUI balance (lower GPU stress)
+debug.hwui.renderer=skiavk
+debug.hwui.target_cpu_time_percent=60
+debug.hwui.target_gpu_time_percent=65
+
+# Blur load reduction
+debug.hwui.blur_cache_size=16
+
+EOF
+
+    #########################################################
+
+    echo "[✓] Live Blur enabled"
+}
+
+APPLY_S25_WALLPAPER() {
+    local ROM_DIR="$1"
+
+    echo "[*] Applying S25 wallpaper package..."
+
+    # Detect correct system path
+    if [ -d "$ROM_DIR/system/system" ]; then
+        SYSTEM_DIR="$ROM_DIR/system/system"
+    else
+        SYSTEM_DIR="$ROM_DIR/system"
+    fi
+
+    WALL_DIR="QuantumROM/Mods/S25_Wallpaper"
+
+    # Rebuild wallpaper-res.apk
+    echo "[*] Reconstructing wallpaper-res.apk..."
+
+    cat "$WALL_DIR"/wallpaper-part-* > \
+        "$WALL_DIR/wallpaper-res.apk"
+
+    if [ ! -f "$WALL_DIR/wallpaper-res.apk" ]; then
+        echo "[ERROR] Failed to reconstruct wallpaper-res.apk"
+        return 1
+    fi
+
+    # Ensure target folder exists
+    mkdir -p "$SYSTEM_DIR/priv-app/wallpaper-res"
+
+    # Replace stock wallpaper-res.apk
+    cp -f "$WALL_DIR/wallpaper-res.apk" \
+        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk"
+
+    chmod 644 \
+        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk"
+
+    chcon u:object_r:system_file:s0 \
+        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk" \
+        2>/dev/null || true
+
+    echo "[✓] S25 wallpaper package installed"
+
+    # Cleanup temporary reconstructed apk
+    rm -f "$WALL_DIR/wallpaper-res.apk"
+}
 
 GEN_FS_CONFIG() {
     if [ "$#" -ne 1 ]; then
