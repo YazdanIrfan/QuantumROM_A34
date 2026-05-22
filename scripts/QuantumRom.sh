@@ -2144,6 +2144,106 @@ EOF
     echo "[✓] Live Blur enabled"
 }
 
+#Live Blur with Toggle
+APPLY_BLUR_FIX_TOGGLE() {
+    local ROM_DIR="$1"
+
+    echo "[*] Applying Live Blur (Stable SurfaceFlinger Mode)..."
+
+    # Detect correct system path
+    if [ -d "$ROM_DIR/system/system" ]; then
+        SYSTEM_DIR="$ROM_DIR/system/system"
+    else
+        SYSTEM_DIR="$ROM_DIR/system"
+    fi
+
+    # Create required directories
+    mkdir -p "$SYSTEM_DIR/bin"
+    mkdir -p "$SYSTEM_DIR/lib64"
+    mkdir -p "$SYSTEM_DIR/etc"
+
+    #########################################################
+    # KEEP CUSTOM SURFACEFLINGER (REQUIRED FOR BLUR)
+    #########################################################
+
+    cp -f QuantumROM/Mods/Blur_Fix/system/bin/surfaceflinger "$SYSTEM_DIR/bin/"
+    chmod 755 "$SYSTEM_DIR/bin/surfaceflinger"
+    chcon u:object_r:system_file:s0 "$SYSTEM_DIR/bin/surfaceflinger" 2>/dev/null || true
+
+    #########################################################
+    # BLUR LIBS
+    #########################################################
+
+    cp -f QuantumROM/Mods/Blur_Fix/system/lib64/libgui.so "$SYSTEM_DIR/lib64/"
+    cp -f QuantumROM/Mods/Blur_Fix/system/lib64/libui.so "$SYSTEM_DIR/lib64/"
+
+    chmod 644 "$SYSTEM_DIR/lib64/libgui.so"
+    chmod 644 "$SYSTEM_DIR/lib64/libui.so"
+
+    chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libgui.so" 2>/dev/null || true
+    chcon u:object_r:system_lib_file:s0 "$SYSTEM_DIR/lib64/libui.so" 2>/dev/null || true
+
+    echo "[*] SurfaceFlinger + Blur libs installed"
+
+    #########################################################
+    # FLOATING FEATURE (LOW = STABILITY)
+    #########################################################
+
+    FLOATING_FEATURE="$SYSTEM_DIR/etc/floating_feature.xml"
+
+    if [ -f "$FLOATING_FEATURE" ]; then
+        echo "[*] Configuring blur features..."
+
+        # Remove existing blur-related entries
+        sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG/d' "$FLOATING_FEATURE"
+        sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_DYNAMIC_RANGE/d' "$FLOATING_FEATURE"
+        sed -i '/SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY/d' "$FLOATING_FEATURE"
+
+        # Insert new blur features
+        sed -i '/<\/SecFloatingFeatureSet>/i \
+<SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG>TRUE</SEC_FLOATING_FEATURE_GRAPHICS_SUPPORT_3D_SURFACE_TRANSITION_FLAG>' "$FLOATING_FEATURE"
+
+        sed -i '/<\/SecFloatingFeatureSet>/i \
+<SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_DYNAMIC_RANGE>TRUE</SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_DYNAMIC_RANGE>' "$FLOATING_FEATURE"
+
+        # IMPORTANT: LOW prevents reboot
+        sed -i '/<\/SecFloatingFeatureSet>/i \
+<SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY>LOW</SEC_FLOATING_FEATURE_GRAPHICS_CONFIG_BLUR_QUALITY>' "$FLOATING_FEATURE"
+
+        echo "[*] Blur set to LOW (stability mode)"
+    else
+        echo "[WARNING] floating_feature.xml not found"
+    fi
+
+    #########################################################
+    # SAFE PERFORMANCE TUNING (NO CRASH FLAGS)
+    #########################################################
+
+    echo "[*] Applying safe tuning..."
+
+    cat <<EOF >> "$SYSTEM_DIR/build.prop"
+
+# ===== LIVE BLUR =====
+
+# SurfaceFlinger stability
+debug.sf.latch_unsignaled=1
+debug.sf.enable_hwc_vds=1
+
+# HWUI balance (lower GPU stress)
+debug.hwui.renderer=skiavk
+debug.hwui.target_cpu_time_percent=60
+debug.hwui.target_gpu_time_percent=65
+
+# Blur load reduction
+debug.hwui.blur_cache_size=16
+
+EOF
+
+    #########################################################
+
+    echo "[✓] Live Blur enabled"
+}
+
 APPLY_S25_WALLPAPER() {
     local ROM_DIR="$1"
 
