@@ -91,7 +91,15 @@ This Custom ROM is built by combining and refining features from multiple projec
 - Sushrut1101
 - https://github.com/Sushrut1101/GoFile-Upload
 
-#### 9. Performnce Mods.
+#### 9. OMC Decoder.
+- fei-ke
+- https://github.com/fei-ke/OmcTextDecoder
+
+#### 10. apktool.
+- iBotPeaches
+- https://github.com/ibotpeaches/apktool
+
+#### 11. Performnce Mods.
 - rhn-1k
 
 ### Licensing.

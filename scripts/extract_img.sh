@@ -16,7 +16,6 @@ if [ ! -f "$IMG_NAME" ]; then
 fi
 
 IMG_NAME_BASE=$(basename "$IMG_NAME" .img)
-
 SRC_MOUNT="${FIRM_DIR}/${IMG_NAME_BASE}_mount"
 
 FILE_CONTEXTS="${FIRM_DIR}/config/${IMG_NAME_BASE}_file_contexts"
@@ -35,7 +34,7 @@ mkdir -p "$SRC_MOUNT"
 
 
 # Mount img
-mount -o loop,ro "$IMG_NAME" "$SRC_MOUNT"
+mount -o ro "$IMG_NAME" "$SRC_MOUNT"
 
 FC_SOURCE=$(find "$SRC_MOUNT" -type f \( \
 -name "file_contexts" -o \
@@ -46,7 +45,6 @@ FC_SOURCE=$(find "$SRC_MOUNT" -type f \( \
 
 
 escape_regex() {
-
     echo "$1" | sed \
         -e 's/\./\\./g' \
         -e 's/\+/\\+/g' \
@@ -61,33 +59,19 @@ escape_regex() {
 
 
 append_context() {
-
     local path="$1"
     local ctx="$2"
     local isdir="$3"
-
-    local esc
-    esc=$(escape_regex "$path")
-
+    local esc=$(escape_regex "$path")
     local line="/${esc} ${ctx}"
 
     grep -qxF "$line" "$FILE_CONTEXTS" 2>/dev/null || \
         echo "$line" >> "$FILE_CONTEXTS"
-
-    if [ "$isdir" = "1" ]; then
-
-        line="/${esc}(/.*)? ${ctx}"
-
-        grep -qxF "$line" "$FILE_CONTEXTS" 2>/dev/null || \
-            echo "$line" >> "$FILE_CONTEXTS"
-    fi
 }
 
 
 find_context() {
-
     local full="$1"
-
     local ctx="u:object_r:system_file:s0"
 
     if [ -f "$FC_SOURCE" ]; then
@@ -110,24 +94,23 @@ find_context() {
     echo "$ctx"
 }
 
-GENERATE_FS_CONFIG() {
 
+GENERATE_FS_CONFIG() {
     echo "- Generating fs_config"
 
     > "$FS_CONFIG"
 
     echo "/ 0 0 0755" >> "$FS_CONFIG"
+	echo "${IMG_NAME_BASE}/ 0 0 0755" >> "$FS_CONFIG"
 
     find "$SRC_MOUNT" -mindepth 1 -print0 | while IFS= read -r -d '' f; do
 
         rel="${f#$SRC_MOUNT}"
         rel="${rel#/}"
-
         path="${IMG_NAME_BASE}/${rel}"
-
         uid=$(stat -c %u "$f")
         gid=$(stat -c %g "$f")
-        mode=$(stat -c %a "$f")
+        mode="0$(stat -c %a "$f")"
 
         echo "$path $uid $gid $mode" >> "$FS_CONFIG"
 
@@ -138,7 +121,6 @@ GENERATE_FS_CONFIG() {
 
 
 GENERATE_FILE_CONTEXTS() {
-
     echo "- Generating file_contexts"
 
     > "$FILE_CONTEXTS"
