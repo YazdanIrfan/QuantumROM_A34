@@ -2244,10 +2244,10 @@ EOF
     echo "[✓] Live Blur enabled"
 }
 
-APPLY_S25_WALLPAPER() {
+APPLY_ONEUI_PRIV_APPS() {
     local ROM_DIR="$1"
 
-    echo "[*] Applying S25 wallpaper package..."
+    echo "[*] Applying OneUI priv-app packages..."
 
     # Detect correct system path
     if [ -d "$ROM_DIR/system/system" ]; then
@@ -2256,37 +2256,45 @@ APPLY_S25_WALLPAPER() {
         SYSTEM_DIR="$ROM_DIR/system"
     fi
 
-    WALL_DIR="QuantumROM/Mods/S25_Wallpaper"
+    PRIVAPP_SRC="QuantumROM/Mods/OneUI_8-5/system/system/priv-app"
 
-    # Rebuild wallpaper-res.apk
-    echo "[*] Reconstructing wallpaper-res.apk..."
-
-    cat "$WALL_DIR"/wallpaper-part-* > \
-        "$WALL_DIR/wallpaper-res.apk"
-
-    if [ ! -f "$WALL_DIR/wallpaper-res.apk" ]; then
-        echo "[ERROR] Failed to reconstruct wallpaper-res.apk"
+    if [ ! -d "$PRIVAPP_SRC" ]; then
+        echo "[ERROR] Missing source directory:"
+        echo "$PRIVAPP_SRC"
         return 1
     fi
 
-    # Ensure target folder exists
-    mkdir -p "$SYSTEM_DIR/priv-app/wallpaper-res"
+    echo "[*] Installing applications..."
 
-    # Replace stock wallpaper-res.apk
-    cp -f "$WALL_DIR/wallpaper-res.apk" \
-        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk"
+    for APP in "$PRIVAPP_SRC"/*; do
+        [ -d "$APP" ] || continue
 
-    chmod 644 \
-        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk"
+        APP_NAME=$(basename "$APP")
 
-    chcon u:object_r:system_file:s0 \
-        "$SYSTEM_DIR/priv-app/wallpaper-res/wallpaper-res.apk" \
-        2>/dev/null || true
+        echo "    -> $APP_NAME"
 
-    echo "[✓] S25 wallpaper package installed"
+        # Create destination app folder only
+        mkdir -p "$SYSTEM_DIR/priv-app/$APP_NAME"
 
-    # Cleanup temporary reconstructed apk
-    rm -f "$WALL_DIR/wallpaper-res.apk"
+        # Copy contents only
+        cp -a "$APP/"* \
+            "$SYSTEM_DIR/priv-app/$APP_NAME/" \
+            2>/dev/null || true
+
+        # Permissions
+        find "$SYSTEM_DIR/priv-app/$APP_NAME" \
+            -type d -exec chmod 755 {} \;
+
+        find "$SYSTEM_DIR/priv-app/$APP_NAME" \
+            -type f -exec chmod 644 {} \;
+
+        # SELinux context
+        chcon -R u:object_r:system_file:s0 \
+            "$SYSTEM_DIR/priv-app/$APP_NAME" \
+            2>/dev/null || true
+    done
+
+    echo "[✓] OneUI priv-app installation complete"
 }
 
 DECODE_OMC() {
