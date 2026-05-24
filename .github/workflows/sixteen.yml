@@ -24,7 +24,7 @@ on:
         required: true
         default: "353435774197736"
       OUTPUT_FILESYSTEM:
-        description: "OUTPUT_FILESYSTEM. e.g erofs / ext4"
+        description: "OUTPUT_FILESYSTEM. e.g erofs / ext4 / f2fs"
         required: true
         default: "erofs"
       COMPRESS_IMG_TO_XZ:
