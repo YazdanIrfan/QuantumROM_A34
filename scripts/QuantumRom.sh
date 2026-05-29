@@ -2,10 +2,6 @@
 
 ###################################################################################################
 
-RED="\e[31m"
-YELLOW="\e[33m"
-NC="\e[0m"
-
 REAL_USER=${SUDO_USER:-$USER}
 
 # QT DIR
@@ -88,7 +84,7 @@ GET_PROP() {
     esac
 
     if [ ! -f "$FILE" ]; then
-        echo -e "- ${RED}File not found:${NC} $FILE"
+        echo -e "- ${RED}File not found: $FILE"
         return 1
     fi
 
@@ -167,34 +163,25 @@ DOWNLOAD_FIRMWARE() {
     local CSC="$2"
     local IMEI="$3"
     local DOWN_DIR="${4}/$MODEL"
-    local VERSION="${5:-}"
 
     rm -rf "$DOWN_DIR"
     mkdir -p "$DOWN_DIR"
 
     echo -e "======================================"
-    echo -e "${YELLOW}  Samsung FW Downloader   ${NC}"
+    echo -e "  Samsung FW Downloader   "
     echo -e "======================================"
     echo -e "MODEL: $MODEL | CSC: $CSC"
 
-    # --- Step 1: Determine Version ---
-    if [ -n "$VERSION" ]; then
-        echo -e "✅ Downloading provided version: $VERSION"
-    else
-        echo -e "Fetching latest firmware..."
+    VERSION=$(python3 -m samloader -m "$MODEL" -r "$CSC" -i "$IMEI" checkupdate 2>&1)
 
-        VERSION=$(python3 -m samloader -m "$MODEL" -r "$CSC" -i "$IMEI" checkupdate 2>&1)
+    if [ $? -ne 0 ] || [ -z "$VERSION" ]; then
+        echo -e "⛔️ MODEL/CSC/IMEI not valid or no update found."
+        echo -e "Error: $VERSION"
+        return 1
+    fi
 
-        if [ $? -ne 0 ] || [ -z "$VERSION" ]; then
-            echo -e "⛔️ MODEL/CSC/IMEI not valid or no update found."
-            echo -e "Error: $VERSION"
-            return 1
-        fi
-
-        echo -e "- ✅ Latest version found: $VERSION"
-        if [ -n "$GITHUB_ENV" ]; then
-            echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-        fi
+    if [ -n "$GITHUB_ENV" ]; then
+        echo "VERSION=$VERSION" >> "$GITHUB_ENV"
     fi
 
     # --- Step 2: Download Firmware ---
@@ -204,12 +191,11 @@ DOWNLOAD_FIRMWARE() {
         exit 1
     fi
 
-    # --- Show Firmware Info ---
-    local file_size=$(du -m "${DOWN_DIR}/${MODEL}_*_fac.zip" | cut -f1)
-    echo -e "Firmware Size: ${file_size} MB"
+	find "$DOWN_DIR" -type f -name "*.zip.enc*" -delete
 
-    # --- Cleanup ---
-    rm -f "$enc_file"
+    # --- Show Firmware Info ---
+    local file_size=$(du -m "${DOWN_DIR}"/${MODEL}_*_fac.zip 2>/dev/null | cut -f1)
+    echo -e "Firmware Size: ${file_size} MB"
 }
 
 
@@ -223,7 +209,7 @@ EXTRACT_FIRMWARE() {
 
     local FIRM_DIR="$1"
 
-    echo -e "${YELLOW}Extracting downloaded firmware.${NC}"
+    echo -e "Extracting downloaded firmware."
 
     # ---- ZIP ----
     for file in "$FIRM_DIR"/*.zip; do
@@ -239,6 +225,7 @@ EXTRACT_FIRMWARE() {
     rm -f "$FIRM_DIR"/BL_*.tar.md5
     rm -f "$FIRM_DIR"/CP_*.tar.md5
     rm -f "$FIRM_DIR"/HOME_CSC_*.tar.md5
+	rm -f "$FIRM_DIR"/USERDATA_*.tar.md5
 
     # ---- XZ ----
     for file in "$FIRM_DIR"/*.xz; do
@@ -273,11 +260,12 @@ EXTRACT_FIRMWARE() {
         esac
     done
 
-    # ---- REMOVE META-DATA ----
-    rm -rf "$FIRM_DIR/meta-data"
-
     # ---- REMOVE UNWANTED LZ4 FILES ----
-    rm -f \
+    rm -rf \
+        "$FIRM_DIR/meta-data" \
+        "$FIRM_DIR"/*.txt \
+        "$FIRM_DIR"/*.pit \
+        "$FIRM_DIR"/*.bin \
         "$FIRM_DIR"/cache.img.lz4 \
         "$FIRM_DIR"/dtbo.img.lz4 \
         "$FIRM_DIR"/efuse.img.lz4 \
@@ -322,11 +310,6 @@ EXTRACT_FIRMWARE() {
         rm -f "$file"
     done
 
-    # ---- REMOVE UNWANTED FILES ----
-    find "$FIRM_DIR" -maxdepth 1 -type f \
-        \( -name "*.txt" -o -name "*.pit" -o -name "*.bin" \) \
-        -delete
-
     echo -e "Firmware Extraction complete."
 }
 
@@ -342,7 +325,7 @@ EXTRACT_SUPER_IMG() {
     local FIRM_DIR="$1"
 
     if [ -f "$FIRM_DIR/super.img" ]; then
-        echo -e "${YELLOW}Extracting super.img${NC}"
+        echo -e "Extracting super.img"
         if [ "$(DETECT_FILESYSTEM "$FIRM_DIR/super.img")" = "sparse" ]; then
 		    echo -e "Converting to raw super.img"
             simg2img "$FIRM_DIR/super.img" "$FIRM_DIR/super_raw.img"
@@ -356,16 +339,12 @@ EXTRACT_SUPER_IMG() {
         echo -e "super.img extraction complete"
 
     else
-        echo -e "${RED}No super.img found.${NC}"
+        echo -e "${RED}No super.img found."
     fi
 }
 
 
 PREPARE_PARTITIONS() {
-	if [ -z "$STOCK_DEVICE" ] || [ "$STOCK_DEVICE" = "None" ]; then
-        export BUILD_PARTITIONS="odm,odm_dlkm,product,system,system_ext,system_dlkm,vendor,vendor_dlkm,odm_a,odm_dlkm_a,product_a,system_a,system_ext_a,system_dlkm_a,vendor_a,vendor_dlkm_a,optics,optics_a"
-    fi
-
     if [ "$#" -ne 1 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
         return 1
@@ -373,20 +352,36 @@ PREPARE_PARTITIONS() {
 
     local EXTRACTED_FIRM_DIR="$1"
 
-    [[ -z "$EXTRACTED_FIRM_DIR" || ! -d "$EXTRACTED_FIRM_DIR" ]] && {
-        echo -e "Invalid directory: $EXTRACTED_FIRM_DIR"
+    echo -e "Preparing partitinos. $STOCK_DEVICE"
+	
+	if [ ! -d "$EXTRACTED_FIRM_DIR" ]; then
+        echo -e "${RED} Directory not found: $EXTRACTED_FIRM_DIR"
         return 1
-    }
+    fi
+
+    if [ -z "$STOCK_DEVICE" ] || [ "$STOCK_DEVICE" = "None" ]; then
+        export BUILD_PARTITIONS="odm,odm_dlkm,product,system,system_ext,system_dlkm,vendor,vendor_dlkm,odm_a,odm_dlkm_a,product_a,system_a,system_ext_a,system_dlkm_a,vendor_a,vendor_dlkm_a,optics,optics_a"
+    fi
+
+    if [ -n "$STOCK_DEVICE" ] && [ -f "$DEVICES_DIR/$STOCK_DEVICE/config" ]; then
+        export STOCK_HAS_AB_SLOT="$(grep -m1 '^STOCK_HAS_AB_SLOT=' "$DEVICES_DIR/$STOCK_DEVICE/config" | cut -d= -f2 | tr -d '\r')"
+    fi
+
+	# Delete empty b slot images
+    find "$EXTRACTED_FIRM_DIR" -type f -name '*_b.img' -size 0c -exec rm -rf {} +
+
+    for img in "$EXTRACTED_FIRM_DIR"/*_a.img; do
+        [ -f "$img" ] || continue
+
+        new="${img%_a.img}.img"
+        mv -f "$img" "$new"
+    done
 
     IFS=',' read -r -a KEEP <<< "$BUILD_PARTITIONS"
 
     for i in "${!KEEP[@]}"; do
         KEEP[$i]=$(echo -e "${KEEP[$i]}" | xargs)
     done
-
-    echo -e "${YELLOW}Preparing partitinos.${NC} $STOCK_DEVICE"
-
-    find "$EXTRACTED_FIRM_DIR" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
 
     shopt -s nullglob dotglob
 
@@ -413,19 +408,19 @@ EXTRACT_FIRMWARE_IMG() {
     echo " "
 
     if [ "$#" -ne 2 ]; then
-        echo -e "Usage: ${FUNCNAME[0]} <FIRMWARE_DIRECTORY> all|img_name"
+        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR> all|img_name"
         return 1
     fi
 
-    local FIRM_DIR="$1"
+    local EXTRACTED_FIRM_DIR="$1"
     local MODE="$2"
 
-    if ! ls "$FIRM_DIR"/*.img >/dev/null 2>&1; then
-        echo -e "No .img files found in: $FIRM_DIR"
+    if ! ls "$EXTRACTED_FIRM_DIR"/*.img >/dev/null 2>&1; then
+        echo -e "No .img files found in: $EXTRACTED_FIRM_DIR"
         return 1
     fi
 
-    echo -e "${YELLOW}Extracting images from:${NC} $FIRM_DIR"
+    echo -e "Extracting images from: $EXTRACTED_FIRM_DIR"
 
     extract_img() {
         local imgfile="$1"
@@ -442,21 +437,21 @@ EXTRACT_FIRMWARE_IMG() {
         local partition="$(basename "${imgfile%.img}")"
         local ORG_IMG_SIZE=$(stat -c%s -- "$imgfile")
 
-        rm -rf "$FIRM_DIR/$partition"
+        rm -rf "$EXTRACTED_FIRM_DIR/$partition"
 
         local fstype=$(DETECT_FILESYSTEM "$imgfile")
         if [ "$fstype" = "sparse" ]; then
-            echo -e "${YELLOW}$partition.img is SPARSE. Converting to raw img.${NC}"
+            echo -e "$partition.img is SPARSE. Converting to raw img."
 
             local tmp_raw="${imgfile}.raw"
 
             if ! simg2img "$imgfile" "$tmp_raw" >/dev/null 2>&1; then
-                echo -e "${RED}Failed to convert sparse image:${NC} $img_name"
+                echo -e "${RED}Failed to convert sparse image: $img_name"
                 return
             fi
 
             if [ ! -f "$tmp_raw" ]; then
-                echo -e "${RED}- Sparse conversion output missing:${NC} $tmp_raw"
+                echo -e "${RED}- Sparse conversion output missing: $tmp_raw"
                 return
             fi
 
@@ -469,50 +464,56 @@ EXTRACT_FIRMWARE_IMG() {
         case "$fstype" in
             ext4)
                 echo " "
-                echo -e "${YELLOW}$partition.img Detected ext4.${NC} Size: $ORG_IMG_SIZE bytes. Extracting..."
-                python3 "$imgextractor_py" "$imgfile" "$FIRM_DIR"
+                echo -e "$partition.img Detected ext4. Size: $ORG_IMG_SIZE bytes. Extracting..."
+                python3 "$imgextractor_py" "$imgfile" "$EXTRACTED_FIRM_DIR"
                 ;;
 
             erofs)
                 echo " "
-                echo -e "${YELLOW}$partition.img Detected erofs.${NC} Size: $ORG_IMG_SIZE bytes. Extracting..."
-                "$extract_erofs" -i "$imgfile" -x -f -o "$FIRM_DIR" >/dev/null 2>&1
+                echo -e "$partition.img Detected erofs. Size: $ORG_IMG_SIZE bytes. Extracting..."
+                "$extract_erofs" -i "$imgfile" -x -f -o "$EXTRACTED_FIRM_DIR" >/dev/null 2>&1
                 ;;
 
             f2fs)
                 echo " "
-                echo -e "${YELLOW}$partition.img Detected f2fs.${NC} Size: $ORG_IMG_SIZE bytes. Extracting..."
-                bash "$QT_DIR/scripts/extract_img.sh" "$imgfile" "$FIRM_DIR"
+                echo -e "$partition.img Detected f2fs. Size: $ORG_IMG_SIZE bytes. Extracting..."
+                bash "$QT_DIR/scripts/extract_img.sh" "$imgfile" "$EXTRACTED_FIRM_DIR"
                 ;;
 
             *)
-                echo -e "${RED}- $img_name unsupported filesystem type:${NC} ($fstype), skipping"
+                echo -e "${RED}- $img_name unsupported filesystem type: ($fstype), skipping"
                 ;;
         esac
     }
 
     if [ "$MODE" = "all" ]; then
-	    PREPARE_PARTITIONS "$FIRM_DIR"
-        for imgfile in "$FIRM_DIR"/*.img; do
+	    PREPARE_PARTITIONS "$EXTRACTED_FIRM_DIR"
+        for imgfile in "$EXTRACTED_FIRM_DIR"/*.img; do
             [ -e "$imgfile" ] || continue
             extract_img "$imgfile"
         done
 
-	    rm -rf "$FIRM_DIR"/*.img
+	    rm -rf "$EXTRACTED_FIRM_DIR"/*.img
+
+		if [[ -n "$GITHUB_ENV" ]]; then
+            echo "ANDROID_VERSION=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.system.build.version.release)" >> "$GITHUB_ENV"
+            echo "ONE_UI_VERSION=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.build.version.oneui)" >> "$GITHUB_ENV"
+            echo "CPU_ABILIST=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.system.product.cpu.abilist)" >> "$GITHUB_ENV"
+        fi
 
     else
-        local TARGET_IMG="$FIRM_DIR/$MODE"
+        local TARGET_IMG="$EXTRACTED_FIRM_DIR/$MODE"
 
         if [ ! -f "$TARGET_IMG" ]; then
-            echo -e "${RED}- Image not found:${NC} $TARGET_IMG"
+            echo -e "${RED}- Image not found: $TARGET_IMG"
             return 1
         fi
 
         extract_img "$TARGET_IMG"
     fi
 
-    chown -R "$REAL_USER:$REAL_USER" "$FIRM_DIR"
-    chmod -R u+rwX "$FIRM_DIR"
+    chown -R "$REAL_USER:$REAL_USER" "$EXTRACTED_FIRM_DIR"
+    chmod -R u+rwX "$EXTRACTED_FIRM_DIR"
 }
 
 
@@ -578,11 +579,11 @@ INSTALL_FRAMEWORK() {
     local framework_apk="$2"
 
 	if [ ! -f "$framework_apk" ]; then
-        echo -e "- ${RED}File not found:${NC} $framework_apk"
+        echo -e "- ${RED}File not found: $framework_apk"
         return 1
     fi
 
-    echo -e "${YELLOW}Installing:${NC} $framework_apk"
+    echo -e "Installing: $framework_apk"
     java -jar "$APKTOOL" install-framework "$framework_apk"
 }
 
@@ -610,10 +611,10 @@ DECOMPILE() {
     local BASENAME="$(basename "${FILE%.*}")"
     local OUT="$DECOMPILE_DIR/$BASENAME"
 
-    echo -e "${YELLOW}Decompiling:${NC} $FILE"
+    echo -e "Decompiling: $FILE"
 
 	if [ ! -f "$FILE" ]; then
-        echo -e "-${RED} File not found:${NC} $FILE"
+        echo -e "-${RED} File not found: $FILE"
         return 1
     fi
 
@@ -645,10 +646,10 @@ RECOMPILE() {
     local ext="${org_file_name##*.}"
     local built_file="$RECOMPILE_DIR/${name}.$ext"
 
-    echo -e "${YELLOW}Recompiling:${NC} $DECOMPILED_DIR"
+    echo -e "Recompiling: $DECOMPILED_DIR"
 
 	if [ ! -d "$DECOMPILED_DIR" ]; then
-        echo -e "-${RED} Directory not found:${NC} $DECOMPILED_DIR"
+        echo -e "-${RED} Directory not found: $DECOMPILED_DIR"
         return 1
     fi
 
@@ -658,7 +659,7 @@ RECOMPILE() {
 	# Zipalign
 	# echo " "
 	# if [[ "$ext" == "apk" ]]; then
-	    # echo -e "${YELLOW}Zipaligning:${NC} $built_file to $final_file"
+	    # echo -e "Zipaligning: $built_file to $final_file"
         # zipalign -v 4 "$built_file" "$final_file" >/dev/null 2>&1
 		# rm -rf "$built_file"
     # fi
@@ -674,7 +675,7 @@ REPLACE_SMALI_METHOD() {
     echo -e "- Method: $METHOD_NAME"
 
     if ! grep -Fq "$METHOD_NAME" "$FILE"; then
-        echo -e "- ${YELLOW}Method not found → Skipped${NC}"
+        echo -e "- Method not found → Skipped"
         return 0
     fi
 
@@ -740,7 +741,7 @@ PATCH_FLAG_SECURE() {
         return 1
     fi
 
-	echo -e "${YELLOW}Patching flag secure.${NC}"
+	echo -e "Patching flag secure."
     #
 	# For android 13
 	# local FILE="${1}/smali_classes3/com/android/server/wm/WindowState.smali"
@@ -812,7 +813,7 @@ PATCH_SECURE_FOLDER() {
         return 1
     fi
 
-    echo -e "${YELLOW}Patching secure folder.${NC}"
+    echo -e "Patching secure folder."
 
 	#https://forum.xda-developers.com/t/mods-samsung-not-android-mods-collection-exynos.3772017/post-86770885
 	local FILE_1="${1}/smali/com/android/server/knox/dar/DarManagerService.smali"
@@ -853,7 +854,7 @@ PATCH_PRIVATE_SHARE() {
         return 1
     fi
 
-    echo -e "${YELLOW}Patching private share.${NC}"
+    echo -e "Patching private share."
 	# https://forum.xda-developers.com/t/mods-samsung-not-android-mods-collection-exynos.3772017/post-86805769
 	
     local FILE="${1}/smali/com/samsung/android/security/keystore/AttestParameterSpec.smali"
@@ -878,7 +879,7 @@ DISABLE_SIGNATURE_VERIFICATION() {
         return 1
     fi
 
-    echo -e "${YELLOW}Disabling signature verification.${NC}"
+    echo -e "Disabling signature verification."
 	# https://github.com/ShaDisNX255/NcX_Stock/commit/e9fca1cedf2405c9f84dc2ee4aafa018e59de464
     # https://forum.xda-developers.com/t/mods-samsung-not-android-mods-collection-exynos.3772017/post-87773529
     # https://forum.xda-developers.com/t/mods-samsung-not-android-mods-collection-exynos.3772017/post-87773543
@@ -905,7 +906,7 @@ PATCH_KNOX_GUARD() {
         return 1
     fi
 
-    echo -e "${YELLOW}Patching knox guard.${NC}"
+    echo -e "Patching knox guard."
     local FILE="${1}/smali_classes2/com/samsung/android/knoxguard/service/KnoxGuardSeService.smali"
     # patch .method public constructor <init>(Landroid/content/Context;)V
     local METHOD_NAME_1=".method public constructor <init>(Landroid/content/Context;)V"
@@ -967,11 +968,11 @@ PATCH_SSRM() {
     local SSRM_DIR="$1"
     local FILE="$SSRM_DIR/smali/com/android/server/ssrm/Feature.smali"
 
-    echo -e "${YELLOW}Patching SSRM.${NC}"
+    echo -e "Patching SSRM."
     echo -e "- Patching: $FILE"
 
     if [ ! -f "$FILE" ]; then
-        echo -e "- ${RED}File not found! Skipping...${NC}"
+        echo -e "- ${RED}File not found! Skipping..."
         return 1
     fi
 
@@ -1007,10 +1008,10 @@ PATCH_BT_LIB() {
 	local WORK_DIR="$2"
 	local BT_LIB_FILE="$WORK_DIR/libbluetooth_jni.so"
 
-    echo -e "${YELLOW}Patching Bluetooth library.${NC}"
+    echo -e "Patching Bluetooth library."
     # Get libbluetooth_jni.so
     if ! ls "$EXTRACTED_FIRM_DIR"/system/system/apex/com.android.bt*.apex >/dev/null 2>&1; then
-        echo -e "- ${RED} No bluetooth apex file found.${NC}"
+        echo -e "- ${RED} No bluetooth apex file found."
         return 1
     fi
 
@@ -1112,7 +1113,7 @@ FIX_VNDK() {
         echo -e "  - VNDK matched. $TARGET_ROM_SYSTEM_EXT_DIR/apex/com.android.vndk.v${STOCK_VNDK_VERSION}.apex"
     else
         echo -e "  - VNDK mismatch. Adding SDK $SDK com.android.vndk.v${STOCK_VNDK_VERSION}.apex"
-        rm -rf "$TARGET_ROM_SYSTEM_EXT_DIR/apex/"*.apex
+        rm -rf "$TARGET_ROM_SYSTEM_EXT_DIR/apex"
         7z x "$VNDKS_COLLECTION/$SDK/${STOCK_VNDK_VERSION}.zip" -o"$TARGET_ROM_SYSTEM_EXT_DIR/" -y >/dev/null 2>&1
     fi
 }
@@ -1238,20 +1239,20 @@ ADJUST_SYSTEM_EXT() {
     if [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "FALSE" ]; then
         echo "- STOCK_HAS_SEPARATE_SYSTEM_EXT: $STOCK_HAS_SEPARATE_SYSTEM_EXT"
 
-        if [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
+        if [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/etc" ]; then
             export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system/system_ext"
 
-        elif [ -d "$EXTRACTED_FIRM_DIR/system/system_ext/apex" ]; then
+        elif [ -d "$EXTRACTED_FIRM_DIR/system/system_ext/etc" ]; then
             export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system_ext"
 			
-		elif [ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]; then
+		elif [ -d "$EXTRACTED_FIRM_DIR/system_ext/etc" ]; then
 		    ADD_SYSTEM_EXT_IN_SYSTEM_ROOT "$EXTRACTED_FIRM_DIR"
         fi
 
 	elif [ "$STOCK_HAS_SEPARATE_SYSTEM_EXT" = "TRUE" ]; then
         echo "STOCK_HAS_SEPARATE_SYSTEM_EXT: $STOCK_HAS_SEPARATE_SYSTEM_EXT"
 
-        if [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
+        if [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/etc" ]; then
             SEPARATE_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
         fi
     fi
@@ -1270,15 +1271,15 @@ PATCH_SELINUX() {
 
 	local EXTRACTED_FIRM_DIR="$1"
 
-    echo -e "${YELLOW}Patching selinux.${NC}"
+    echo -e "Patching selinux."
 
 	UNSUPPORTED_SELINUX=("audiomirroring" "fabriccrypto" "hal_dsms_default" "qb_id_prop" "hal_dsms_service" "proc_compaction_proactiveness" "sbauth" "ker_app" "kpp_app" "kpp_data" "attiqi_app" "kpoc_charger" "sec_diag")
 
-	if [ -d "$EXTRACTED_FIRM_DIR/system_ext/apex" ]; then
+	if [ -d "$EXTRACTED_FIRM_DIR/system_ext/etc" ]; then
         export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system_ext"
-	elif [ -d "$EXTRACTED_FIRM_DIR/system/system_ext/apex" ]; then
+	elif [ -d "$EXTRACTED_FIRM_DIR/system/system_ext/etc" ]; then
         export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system_ext"
-    elif [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/apex" ]; then
+    elif [ -d "$EXTRACTED_FIRM_DIR/system/system/system_ext/etc" ]; then
             export TARGET_ROM_SYSTEM_EXT_DIR="$EXTRACTED_FIRM_DIR/system/system/system_ext"
     fi
 
@@ -1293,7 +1294,7 @@ PATCH_SELINUX() {
     fi
 
     if [ ! -d "$TARGET_ROM_SYSTEM_EXT_DIR" ]; then
-        echo -e "${RED} - No system_ext_dir found. ${NC}"
+        echo -e "${RED} - No system_ext_dir found. "
         return 1
     fi
 
@@ -1362,7 +1363,7 @@ APPLY_CUSTOM_FLOATING_FEATURE() {
 
 	local FLOATING_FEATURE_FILE_DIRECTORY="$1"
 
-	echo -e "${YELLOW}Applying Custom Floating Feature.${NC}"
+	echo -e "Applying Custom Floating Feature."
     #========== COMMON ==========#
     UPDATE_FLOATING_FEATURE "$FLOATING_FEATURE_FILE_DIRECTORY" "SEC_FLOATING_FEATURE_COMMON_CONFIG_SEP_CATEGORY" "sep_basic"
 
@@ -1645,13 +1646,9 @@ APPLY_STOCK_ROM_FLOATING_FEATURE() {
 
 
 APPLY_STOCK_CONFIG() {
-    echo -e ""
-	if [ -z "$STOCK_DEVICE" ] || [ "$STOCK_DEVICE" = "None" ]; then
-        echo -e "No target device is set. Just modifying ROM without any device config."
-        return 1
-    fi
+    echo " "
 
-	echo -e "${YELLOW}Applying $STOCK_DEVICE device config.${NC}"
+	echo -e "Applying $STOCK_DEVICE device config."
     if [ "$#" -ne 1 ]; then
         echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
         return 1
@@ -1659,23 +1656,43 @@ APPLY_STOCK_CONFIG() {
 
     local EXTRACTED_FIRM_DIR="$1"
 	local FLOATING_FEATURE_FILE_DIRECTORY="$EXTRACTED_FIRM_DIR/system/system/etc/floating_feature.xml"
+	
+	if [ -z "$STOCK_DEVICE" ] || [ "$STOCK_DEVICE" = "None" ]; then
+        echo -e "No target device is set. Just modifying ROM without any device config."
+        return 1
+    fi
 
     if [ ! -f "$DEVICES_DIR/$STOCK_DEVICE/config" ]; then
-        echo -e "- Config file for $STOCK_DEVICE not found in $DEVICES_DIR"
+        echo -e "Config file for $STOCK_DEVICE not found in $DEVICES_DIR"
+        return 1
+	fi
+
+    if [ ! -d "$EXTRACTED_FIRM_DIR/system/system" ]; then
+        echo -e "No usable extracted firmware found"
         return 1
 	fi
 
     if [ -f "$DEVICES_DIR/$STOCK_DEVICE/config" ]; then
-        echo -e "- $STOCK_DEVICE config found."
+        echo -e "$STOCK_DEVICE config found."
         export STOCK_VNDK_VERSION="$(grep -m1 '^STOCK_VNDK_VERSION=' "$DEVICES_DIR/$STOCK_DEVICE/config" | cut -d= -f2 | tr -d '\r')"
         export STOCK_HAS_SEPARATE_SYSTEM_EXT="$(grep -m1 '^STOCK_HAS_SEPARATE_SYSTEM_EXT=' "$DEVICES_DIR/$STOCK_DEVICE/config" | cut -d= -f2 | tr -d '\r')"
     	export STOCK_DVFS_FILENAME="$(grep -m1 '^STOCK_DVFS_FILENAME=' "$DEVICES_DIR/$STOCK_DEVICE/config" | cut -d= -f2 | tr -d '\r')"
+		export STOCK_DEVICE_CPU_ABILIST="$(grep -m1 '^STOCK_DEVICE_CPU_ABILIST=' "$DEVICES_DIR/$STOCK_DEVICE/config" | cut -d= -f2 | tr -d '\r')"
     fi
 
-	echo "- Stock device vndk version: $STOCK_VNDK_VERSION"
+	echo "Stock device vndk version: $STOCK_VNDK_VERSION"
     export STOCK_ROM_FLOATING_FEATURE="$DEVICES_DIR/$STOCK_DEVICE/floating_feature.xml"
 	export STOCK_SIOP_POLICY_FILENAME="$(awk -F'[<>]' '$2 == "SEC_FLOATING_FEATURE_SYSTEM_CONFIG_SIOP_POLICY_FILENAME" {print $3}' "$STOCK_ROM_FLOATING_FEATURE" | tr -d '\r' | xargs)"
 	export STOCK_DEVICE_TYPE="$(awk -F'[<>]' '$2 == "SEC_FLOATING_FEATURE_COMMON_CONFIG_DEVICE_MANUFACTURING_TYPE" {print $3}' "$STOCK_ROM_FLOATING_FEATURE")"
+
+	export TARGET_ROM_CPU_ABILIST="$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.system.product.cpu.abilist)"
+
+	if [ "$STOCK_DEVICE_CPU_ABILIST" != "$TARGET_ROM_CPU_ABILIST" ]; then
+        echo "CPU ABI MISMATCH!"
+        echo "STOCK DEVICE CPU ABI: $STOCK_DEVICE_CPU_ABILIST"
+        echo "TARGET ROM CPU ABI  : $TARGET_ROM_CPU_ABILIST"
+        exit 1
+    fi
 
 	# ADJUST SYSTEM_EXT PARTITION.
     ADJUST_SYSTEM_EXT "$EXTRACTED_FIRM_DIR"
@@ -1692,7 +1709,7 @@ APPLY_STOCK_CONFIG() {
     fi
 
     if [ "$STOCK_DEVICE_TYPE" = "jdm" ]; then
-	    echo -e "- Applying jdm device feature."
+	    echo -e "Applying jdm device feature."
 	    APPLY_JDM_SPECIAL "$EXTRACTED_FIRM_DIR"
     else
 	    rm -rf "$EXTRACTED_FIRM_DIR/system/system/cameradata/portrait_data"
@@ -1745,7 +1762,7 @@ BUILD_PROP() {
     esac
 
     if [ ! -f "$FILE" ]; then
-        echo -e "- ${RED}File not found:${NC} $FILE"
+        echo -e "- ${RED}File not found: $FILE"
         return 1
     fi
 
@@ -1797,7 +1814,7 @@ DISABLE_SECURITY() {
 
 	local EXTRACTED_FIRM_DIR="$1"
 
-    echo -e "${YELLOW}Disabling security related things.${NC}"
+    echo -e "Disabling security related things."
 
     if [ -f "$EXTRACTED_FIRM_DIR/product/etc/build.prop" ]; then
         echo "- Disabling factory reset protection from product."
@@ -1805,12 +1822,12 @@ DISABLE_SECURITY() {
     fi
 
 	if [ -f "$EXTRACTED_FIRM_DIR/vendor/build.prop" ]; then
-        echo "Disabling factory reset protection from vendor."
+        echo "- Disabling factory reset protection from vendor."
 		BUILD_PROP "$EXTRACTED_FIRM_DIR" "vendor" "ro.frp.pst" ""
     fi
 
     if [ -f "$EXTRACTED_FIRM_DIR/vendor/recovery-from-boot.p" ]; then
-        echo "Disabling stock recovery restoration."
+        echo "- Disabling stock recovery restoration."
         rm -rf "$EXTRACTED_FIRM_DIR/vendor/recovery-from-boot.p"
     fi
 
@@ -1840,7 +1857,7 @@ ADD_FLAGSHIP_APPS() {
         return 1
     fi
 
-	echo -e "${YELLOW}Adding samsung full ONEUI apps.${NC}"
+	echo -e "Adding samsung full ONEUI apps."
 
 	local EXTRACTED_FIRM_DIR="$1"
 	local FLOATING_FEATURE_FILE_DIRECTORY="$EXTRACTED_FIRM_DIR/system/system/etc/floating_feature.xml"
@@ -2005,7 +2022,7 @@ APPLY_CUSTOM_FEATURES() {
         return 1
     fi
 
-    echo -e "${YELLOW}Applying usefull features.${NC}"
+    echo -e "Applying usefull features."
 
 	echo -e "- Adding build prop tweak."
 	BUILD_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.product.locale" "en-US"
@@ -2297,6 +2314,466 @@ APPLY_ONEUI_PRIV_APPS() {
     echo "[✓] OneUI priv-app installation complete"
 }
 
+ENABLE_INS_MULTILINGUAL() {
+    echo " "
+
+    if [ "$#" -ne 1 ]; then
+        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
+        return 1
+    fi
+
+    local EXTRACTED_FIRM_DIR="$1"
+
+    echo -e "${YELLOW}Enabling INS multilingual support.${NC}"
+
+    #========================================#
+    # Partition Detection
+    #========================================#
+
+    local SYSTEM_DIR=""
+    local PRODUCT_DIR=""
+    local OMC_DIR=""
+
+    if [ -d "$EXTRACTED_FIRM_DIR/system/system" ]; then
+        SYSTEM_DIR="$EXTRACTED_FIRM_DIR/system/system"
+    else
+        SYSTEM_DIR="$EXTRACTED_FIRM_DIR/system"
+    fi
+
+    [ -d "$EXTRACTED_FIRM_DIR/product" ] \
+        && PRODUCT_DIR="$EXTRACTED_FIRM_DIR/product"
+
+    if [ -d "$SYSTEM_DIR/omc/INS" ]; then
+        OMC_DIR="$SYSTEM_DIR/omc/INS"
+    elif [ -d "$PRODUCT_DIR/omc/INS" ]; then
+        OMC_DIR="$PRODUCT_DIR/omc/INS"
+    fi
+
+    #========================================#
+    # Locale List
+    #========================================#
+
+    local CSC_LANG_LIST="\
+en_US,hi_IN,bn_IN,ta_IN,\
+te_IN,ml_IN,kn_IN,mr_IN,\
+gu_IN,pa_IN,ur_PK,tr_TR,\
+ar_SA,de_DE,es_ES,fr_FR,\
+id_ID,it_IT,ja_JP,ko_KR,\
+pl_PL,pt_BR,ru_RU,th_TH,\
+uk_UA,vi_VN,zh_CN,zh_TW"
+
+    #========================================#
+    # Patch CSC XML
+    #========================================#
+
+    PATCH_CSC_FILE() {
+
+        local FILE="$1"
+
+        [ ! -f "$FILE" ] && return
+
+        echo -e "- Patching $(basename "$FILE")"
+
+        local KEYS=(
+            "CscFeature_Common_SupportLocale"
+            "CscFeature_Framework_ConfigSupportedLanguages"
+            "CscFeature_Setting_ConfigLanguageList"
+        )
+
+        for key in "${KEYS[@]}"; do
+
+            if grep -q "<${key}>.*</${key}>" "$FILE"; then
+
+                sed -i \
+                    "s|<${key}>.*</${key}>|<${key}>${CSC_LANG_LIST}</${key}>|g" \
+                    "$FILE"
+
+            else
+
+                sed -i \
+                    "/<\/FeatureSet>/i\    <${key}>${CSC_LANG_LIST}</${key}>" \
+                    "$FILE"
+            fi
+        done
+
+        # Remove restrictions
+        sed -i '/DisableLanguage/d' "$FILE"
+        sed -i '/RemoveLanguageList/d' "$FILE"
+        sed -i '/language_restricted/d' "$FILE"
+    }
+
+    find \
+        "$SYSTEM_DIR" \
+        "$PRODUCT_DIR" \
+        "$OMC_DIR" \
+        2>/dev/null \
+        -type f \( \
+            -name "others.xml" -o \
+            -name "cscfeature.xml" -o \
+            -name "customer.xml" \
+        \) | while read -r FILE; do
+
+        PATCH_CSC_FILE "$FILE"
+
+    done
+
+    #========================================#
+    # locale_config.xml
+    #========================================#
+
+    PATCH_LOCALE_CONFIG() {
+
+        local FILE="$1"
+
+        [ ! -f "$FILE" ] && return
+
+        local LOCALES=(
+            "tr-TR"
+            "ar-SA"
+            "de-DE"
+            "es-ES"
+            "fr-FR"
+            "ru-RU"
+            "ja-JP"
+            "ko-KR"
+            "zh-CN"
+            "zh-TW"
+        )
+
+        for locale in "${LOCALES[@]}"; do
+
+            if ! grep -q "$locale" "$FILE"; then
+
+                sed -i \
+                    "/<\/locale-config>/i\    <locale name=\"$locale\"\/>" \
+                    "$FILE"
+
+                echo -e "- Added locale $locale"
+            fi
+        done
+    }
+
+    PATCH_LOCALE_CONFIG \
+        "$SYSTEM_DIR/etc/locale_config.xml"
+
+    PATCH_LOCALE_CONFIG \
+        "$PRODUCT_DIR/etc/locale_config.xml"
+
+    #========================================#
+    # Floating Features
+    #========================================#
+
+    local FF_FILE=""
+
+    if [ -f "$SYSTEM_DIR/etc/floating_feature.xml" ]; then
+        FF_FILE="$SYSTEM_DIR/etc/floating_feature.xml"
+    elif [ -f "$PRODUCT_DIR/etc/floating_feature.xml" ]; then
+        FF_FILE="$PRODUCT_DIR/etc/floating_feature.xml"
+    fi
+
+    if [ -n "$FF_FILE" ]; then
+
+        UPDATE_FLOATING_FEATURE \
+            "$FF_FILE" \
+            "SEC_FLOATING_FEATURE_COMMON_SUPPORT_LANGUAGE_PACK" \
+            "TRUE"
+
+        UPDATE_FLOATING_FEATURE \
+            "$FF_FILE" \
+            "SEC_FLOATING_FEATURE_COMMON_CONFIG_LOCALE" \
+            "multi"
+
+        UPDATE_FLOATING_FEATURE \
+            "$FF_FILE" \
+            "SEC_FLOATING_FEATURE_SIP_SUPPORT_LANGUAGES" \
+            "all"
+
+        echo -e "- Floating features updated."
+    fi
+
+    #========================================#
+    # Preserve Language Resources
+    #========================================#
+
+    local LANG_COUNT=0
+
+    LANG_COUNT=$(find \
+        "$SYSTEM_DIR" \
+        "$PRODUCT_DIR" \
+        2>/dev/null \
+        -type d -name "values-*" | wc -l)
+
+    echo -e "- Detected $LANG_COUNT language resource folders."
+
+    if [ "$LANG_COUNT" -lt 80 ]; then
+        echo -e "${RED}- WARNING:${NC} ROM may be language stripped."
+    fi
+
+    #========================================#
+    # Samsung Keyboard
+    #========================================#
+
+    find \
+        "$SYSTEM_DIR" \
+        "$PRODUCT_DIR" \
+        2>/dev/null \
+        -type d \( \
+            -name "HoneyBoard*" -o \
+            -name "SamsungIME*" \
+        \) | while read -r KB; do
+
+        mkdir -p "$KB/assets/languages"
+
+        touch "$KB/assets/languages/all_languages"
+
+    done
+
+    #========================================#
+    # Done
+    #========================================#
+
+    echo -e "${YELLOW}INS multilingual support enabled.${NC}"
+}
+
+# =========================================
+# Proper Samsung Galaxy S24 Ultra Spoofer
+# Safe + Stable + OneUI Port Friendly
+# =========================================
+
+PROPER_S24U_SPOOFER() {
+
+    echo " "
+    echo -e "${YELLOW}Applying Proper S24 Ultra Spoof...${NC}"
+
+    local SYSTEM_BUILD="$WORK_DIR/system/system/build.prop"
+    local PRODUCT_BUILD="$WORK_DIR/product/etc/build.prop"
+    local VENDOR_BUILD="$WORK_DIR/vendor/build.prop"
+
+    # =========================================
+    # Helper
+    # =========================================
+
+    UPDATE_PROP() {
+        local FILE="$1"
+        local PROP="$2"
+        local VALUE="$3"
+
+        [ ! -f "$FILE" ] && return
+
+        sed -i "/^${PROP}=.*/d" "$FILE"
+        echo "${PROP}=${VALUE}" >> "$FILE"
+    }
+
+    # =========================================
+    # Main Identity Spoof
+    # =========================================
+
+    for FILE in \
+        "$SYSTEM_BUILD" \
+        "$PRODUCT_BUILD" \
+        "$VENDOR_BUILD"
+    do
+        [ ! -f "$FILE" ] && continue
+
+        # Samsung Identity
+        UPDATE_PROP "$FILE" "ro.product.brand" "samsung"
+        UPDATE_PROP "$FILE" "ro.product.manufacturer" "samsung"
+
+        # S24 Ultra
+        UPDATE_PROP "$FILE" "ro.product.model" "SM-S928B"
+        UPDATE_PROP "$FILE" "ro.product.device" "e3q"
+        UPDATE_PROP "$FILE" "ro.product.name" "e3qxxx"
+
+        # System props
+        UPDATE_PROP "$FILE" "ro.product.system.model" "SM-S928B"
+        UPDATE_PROP "$FILE" "ro.product.system.device" "e3q"
+        UPDATE_PROP "$FILE" "ro.product.system.name" "e3qxxx"
+
+        # Vendor props
+        UPDATE_PROP "$FILE" "ro.product.vendor.model" "SM-S928B"
+        UPDATE_PROP "$FILE" "ro.product.vendor.device" "e3q"
+        UPDATE_PROP "$FILE" "ro.product.vendor.name" "e3qxxx"
+
+        # Build product
+        UPDATE_PROP "$FILE" "ro.build.product" "e3q"
+
+        # Samsung ecosystem
+        UPDATE_PROP "$FILE" "ro.config.tima" "1"
+        UPDATE_PROP "$FILE" "ro.config.knox" "1"
+
+        # Performance hints
+        UPDATE_PROP "$FILE" "debug.sf.hw" "1"
+        UPDATE_PROP "$FILE" "debug.egl.hw" "1"
+
+        UPDATE_PROP "$FILE" "persist.sys.use_vulkan" "1"
+
+        # Game mode
+        UPDATE_PROP "$FILE" "persist.sys.game_mode.high_performance" "1"
+
+        # Refresh rate hints
+        UPDATE_PROP "$FILE" "persist.sys.display.refresh_rate" "120"
+        UPDATE_PROP "$FILE" "persist.sys.display.max_refresh_rate" "120"
+    done
+
+    # =========================================
+    # Floating Feature Enhancements
+    # =========================================
+
+    local FLOATING_FEATURE="$WORK_DIR/system/system/etc/floating_feature.xml"
+
+    if [ -f "$FLOATING_FEATURE" ]; then
+
+        # AI
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING_FEATURE" \
+        "SEC_FLOATING_FEATURE_COMMON_SUPPORT_AI" \
+        "TRUE"
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING_FEATURE" \
+        "SEC_FLOATING_FEATURE_GENAI_SUPPORT" \
+        "TRUE"
+
+        # Gallery AI
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING_FEATURE" \
+        "SEC_FLOATING_FEATURE_GALLERY_SUPPORT_GENERATIVE_EDIT" \
+        "TRUE"
+
+        # Pro scaler
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING_FEATURE" \
+        "SEC_FLOATING_FEATURE_FRAMEWORK_SUPPORT_PRO_SCALER" \
+        "TRUE"
+
+        # High refresh support
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING_FEATURE" \
+        "SEC_FLOATING_FEATURE_LCD_CONFIG_HFR_MODE" \
+        "2"
+
+        # Vision booster
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING_FEATURE" \
+        "SEC_FLOATING_FEATURE_LCD_SUPPORT_VISION_BOOSTER" \
+        "TRUE"
+
+    fi
+
+    echo -e "${YELLOW}Proper S24 Ultra Spoof Applied Successfully.${NC}"
+}
+
+# =========================================
+# Safe Integrity / Boot Compatibility Spoof
+# Samsung OneUI Port Safe
+#
+# IMPORTANT:
+# - This DOES NOT create real hardware attestation
+# - This DOES NOT restore Knox
+# - This DOES NOT truly lock bootloader
+#
+# Purpose:
+# - Improve compatibility
+# - Improve Play Integrity success rate
+# - Improve root hiding environment
+# - Mimic official Samsung release behavior
+# =========================================
+
+SAFE_INTEGRITY_SPOOFER() {
+
+    echo " "
+    echo -e "${YELLOW}Applying Safe Integrity Spoofer...${NC}"
+
+    local SYSTEM_BUILD="$WORK_DIR/system/system/build.prop"
+    local PRODUCT_BUILD="$WORK_DIR/product/etc/build.prop"
+    local VENDOR_BUILD="$WORK_DIR/vendor/build.prop"
+
+    # =========================================
+    # Helper
+    # =========================================
+
+    UPDATE_PROP() {
+        local FILE="$1"
+        local PROP="$2"
+        local VALUE="$3"
+
+        [ ! -f "$FILE" ] && return
+
+        sed -i "/^${PROP}=.*/d" "$FILE"
+        echo "${PROP}=${VALUE}" >> "$FILE"
+    }
+
+    # =========================================
+    # Apply To All Partitions
+    # =========================================
+
+    for FILE in \
+        "$SYSTEM_BUILD" \
+        "$PRODUCT_BUILD" \
+        "$VENDOR_BUILD"
+    do
+        [ ! -f "$FILE" ] && continue
+
+        # =========================================
+        # Official Build Style
+        # =========================================
+
+        UPDATE_PROP "$FILE" "ro.build.tags" "release-keys"
+        UPDATE_PROP "$FILE" "ro.build.type" "user"
+
+        UPDATE_PROP "$FILE" "ro.debuggable" "0"
+        UPDATE_PROP "$FILE" "ro.secure" "1"
+
+        # =========================================
+        # Samsung Environment
+        # =========================================
+
+        UPDATE_PROP "$FILE" "ro.config.tima" "1"
+        UPDATE_PROP "$FILE" "ro.config.knox" "1"
+
+        UPDATE_PROP "$FILE" "ro.fmp_config" "1"
+
+        # =========================================
+        # SELinux
+        # =========================================
+
+        UPDATE_PROP "$FILE" "ro.build.selinux" "1"
+
+        # =========================================
+        # ADB Security
+        # =========================================
+
+        UPDATE_PROP "$FILE" "persist.sys.usb.config" "mtp"
+
+        # =========================================
+        # Dex / Enterprise Compatibility
+        # =========================================
+
+        UPDATE_PROP "$FILE" "ro.security.keystore.keytype" "hardware"
+
+    done
+
+    # =========================================
+    # Optional Default Prop Cleanup
+    # Removes common custom ROM indicators
+    # =========================================
+
+    for FILE in \
+        "$SYSTEM_BUILD" \
+        "$PRODUCT_BUILD" \
+        "$VENDOR_BUILD"
+    do
+        [ ! -f "$FILE" ] && continue
+
+        sed -i '/test-keys/d' "$FILE"
+        sed -i '/userdebug/d' "$FILE"
+        sed -i '/eng/d' "$FILE"
+
+    done
+
+    echo -e "${YELLOW}Safe Integrity Spoofer Applied Successfully.${NC}"
+}
+
 DECODE_OMC() {
     echo " "
 
@@ -2305,27 +2782,14 @@ DECODE_OMC() {
         return 1
     fi
 
-    echo -e "${YELLOW}Decoding CSC - odm,optics.${NC}"
+    echo -e "Decoding CSC - odm,optics."
 
     if ! command -v java >/dev/null 2>&1; then
-        echo -e "${RED}- Java is not installed.${NC}"
+        echo -e "Java is not installed."
         return 1
     fi
 
     local FW_DIR="$1"
-
-    if [ -d "${FW_DIR}/optics" ]; then
-        rm -rf "${WORK_DIR}/optics_decoded"
-
-        echo "Decoding optics."
-
-        java -jar "$omc_decoder" \
-            -i "${FW_DIR}/optics" \
-            -o "${WORK_DIR}/optics_decoded" \
-            >/dev/null 2>&1 || {
-                echo -e "${RED}Failed decoding optics.${NC}"
-            }
-    fi
 
     if [ -d "${FW_DIR}/odm/etc/omc" ]; then
         rm -rf "${WORK_DIR}/odm_decoded"
@@ -2336,8 +2800,25 @@ DECODE_OMC() {
             -i "${FW_DIR}/odm/etc/omc" \
             -o "${WORK_DIR}/odm_decoded" \
             >/dev/null 2>&1 || {
-                echo -e "${RED}Failed decoding odm/etc/omc.${NC}"
+                echo -e "Failed decoding odm/etc/omc."
             }
+	else
+	     echo "No odm found."
+    fi
+
+    if [ -d "${FW_DIR}/optics" ]; then
+        rm -rf "${WORK_DIR}/optics_decoded"
+
+        echo "Decoding optics."
+
+        java -jar "$omc_decoder" \
+            -i "${FW_DIR}/optics" \
+            -o "${WORK_DIR}/optics_decoded" \
+            >/dev/null 2>&1 || {
+                echo -e "Failed decoding optics."
+            }
+	else
+	     echo "No optics found."
     fi
 }
 
@@ -2365,7 +2846,7 @@ GEN_FS_CONFIG() {
 
     touch "$FS_CONFIG"
 
-    echo -e "${YELLOW}Generating fs_config for partition:${NC} $PARTITION"
+    echo -e "Generating fs_config for partition: $PARTITION"
 
     awk '{print $1}' "$FS_CONFIG" | sort -u > "$TMP_EXISTING"
 
@@ -2441,7 +2922,7 @@ GEN_FILE_CONTEXTS() {
 
     touch "$FILE_CONTEXTS"
 
-    echo -e "${YELLOW}Generating file_contexts for partition:${NC} $PARTITION"
+    echo -e "Generating file_contexts for partition: $PARTITION"
 
     declare -A EXISTING=()
 
@@ -2543,7 +3024,7 @@ BUILD_IMG() {
 
         if [[ "$FILE_SYSTEM" == "erofs" ]]; then
             echo " "
-            echo -e "${YELLOW}Building erofs image:${NC} $OUT_IMG"
+            echo -e "Building erofs image: $OUT_IMG"
 
             $mkfs_erofs \
                 --mount-point="$MOUNT_POINT" \
@@ -2556,7 +3037,7 @@ BUILD_IMG() {
 
         elif [[ "$FILE_SYSTEM" == "ext4" ]]; then
             echo " "
-            echo -e "${YELLOW}Building ext4 image:${NC} $OUT_IMG"
+            echo -e "Building ext4 image: $OUT_IMG"
 
             SIZE=$(((EXTRACTED_SIZE + 4095) / 4096 * 4096))
             EXTENDED_SIZE=$((SIZE + SIZE / 5))
@@ -2579,7 +3060,7 @@ BUILD_IMG() {
 
         elif [[ "$FILE_SYSTEM" == "f2fs" ]]; then
             echo " "
-            echo -e "${YELLOW}Building f2fs image:${NC} $OUT_IMG"
+            echo -e "Building f2fs image: $OUT_IMG"
 
             SIZE=$(((EXTRACTED_SIZE + 511) / 512 * 512))
             EXTENDED_SIZE=$((SIZE + SIZE / 4))
@@ -2610,7 +3091,7 @@ BUILD_IMG() {
             mv "${OUT_IMG}.sparse" "$OUT_IMG"
 
         else
-            echo -e "${RED}Unsupported filesystem:${NC} $FILE_SYSTEM"
+            echo -e "${RED}Unsupported filesystem: $FILE_SYSTEM"
             return
         fi
     }
@@ -2639,64 +3120,66 @@ BUILD_IMG() {
 BUILD_SUPER_IMG() {
     echo " "
 
-    IMG_DIR="$1"
-    OUTPUT_DIR="$2"
-    OUTPUT_IMG="$OUTPUT_DIR/super.img"
-    
-    echo -e "${YELLOW}Building:${NC} super.img"
+    local IMG_DIR="$1"
+    local OUTPUT_DIR="$2"
+    local OUTPUT_IMG="$OUTPUT_DIR/super.img"
 
-    if [ ! -d "$IMG_DIR" ]; then
+    echo "Building: super.img"
+
+    [ ! -d "$IMG_DIR" ] && {
         echo "- Input folder not found: $IMG_DIR"
         return 1
-    fi
+    }
 
-    PARTITIONS=""
-    IMAGES=""
-    TOTAL_SIZE=0
+    local PARTITIONS=""
+    local IMAGES=""
+    local TOTAL_SIZE=0
+    local VALID_IMAGES=0
 
-    rm -f "$OUTPUT_DIR/super.img"
+    rm -f "$OUTPUT_IMG"
 
     for img in "$IMG_DIR"/*.img; do
         [ -e "$img" ] || continue
 
-        name=$(basename "$img")
+        local name="$(basename "$img")"
 
         case "$name" in
-            boot.img|recovery.img|vbmeta.img|dtbo.img|userdata.img|cache.img|vendor_boot.img|super.img)
-                echo "- Skipping $name (not logical partition)"
+            boot.img|init_boot.img|recovery.img|vbmeta.img|vbmeta_system.img|vbmeta_vendor.img|dtbo.img|userdata.img|cache.img|metadata.img|vendor_boot.img|super.img)
+                echo "- Skipping $name"
                 continue
                 ;;
         esac
 
-        part_name="${name%.img}"
-        size=$(stat -c%s "$img")
+        local part_name="${name%.img}"
+        local size=$(stat -c%s "$img")
 
-        echo -e "${YELLOW}Adding:${NC} $part_name ($size bytes)"
+        [ "$size" -le 0 ] && {
+            echo "- Skipping empty image: $name"
+            continue
+        }
 
-        PARTITIONS="$PARTITIONS --partition ${part_name}:readonly:${size}:main"
-        IMAGES="$IMAGES --image ${part_name}=$img"
+        echo "Adding: $part_name ($size bytes)"
 
+        PARTITIONS+=" --partition ${part_name}:readonly:${size}:main"
+        IMAGES+=" --image ${part_name}=$img"
         TOTAL_SIZE=$((TOTAL_SIZE + size))
+        VALID_IMAGES=1
     done
 
-    TOTAL_SIZE=$((TOTAL_SIZE + 67108864))
+    [ "$VALID_IMAGES" -eq 0 ] && {
+        echo "- No valid logical partition images found"
+        return 1
+    }
 
-    echo "Total super size: $TOTAL_SIZE bytes"
+    TOTAL_SIZE=$((TOTAL_SIZE + 4194304))
 
     $lpmake \
+	    --device super:$TOTAL_SIZE \
         --metadata-size 65536 \
         --metadata-slots 2 \
-        --super-name super \
-        --device super:$TOTAL_SIZE \
-        --group main:$TOTAL_SIZE \
+		--group main:$TOTAL_SIZE \
+		--block-size 4096 \
         $PARTITIONS \
         $IMAGES \
         --output "$OUTPUT_IMG"
-
-    if [ $? -eq 0 ]; then
-        echo -e "${YELLOW}Build completed:${NC} $OUTPUT_IMG"
-    else
-        echo -e "${RED}Failed to build super.img${NC}"
-        return 1
-    fi
 }

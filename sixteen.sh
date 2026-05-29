@@ -45,6 +45,9 @@ APPLY_CUSTOM_FEATURES "$FIRM_DIR/$TARGET_DEVICE"
 APPLY_BLUR_FIX "$FIRM_DIR/$TARGET_DEVICE"
 #APPLY_BLUR_FIX_TOGGLE "$FIRM_DIR/$TARGET_DEVICE"
 APPLY_ONEUI_PRIV_APPS "$FIRM_DIR/$TARGET_DEVICE"
+ENABLE_INS_MULTILINGUAL "$FIRM_DIR/$TARGET_DEVICE"
+PROPER_S24U_SPOOFER "$FIRM_DIR/$TARGET_DEVICE"
+SAFE_INTEGRITY_SPOOFER "$FIRM_DIR/$TARGET_DEVICE"
 
 INSTALL_FRAMEWORK "$APKTOOL" "$FIRM_DIR/$TARGET_DEVICE/system/system/framework/framework-res.apk"
 
@@ -65,7 +68,7 @@ mv -f "$WORK_DIR"/*.jar "$FIRM_DIR/$TARGET_DEVICE/system/system/framework/"
 PATCH_BT_LIB "$FIRM_DIR/$TARGET_DEVICE" "$WORK_DIR"
 
 D_ID="$(grep -m1 '^ro.build.display.id=' "$FIRM_DIR/$TARGET_DEVICE/system/system/build.prop" | cut -d= -f2 | tr -d '\r')"
-BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "system" "ro.build.display.id" "${D_ID} QuantumRom V-${VERSION}.1.0"
-BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "product" "ro.build.display.id" "${D_ID} QuantumRom V-${VERSION}.1.0"
+BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "system" "ro.build.display.id" "${D_ID} QuantumRom V-${VERSION}.1.1"
+BUILD_PROP "$FIRM_DIR/$TARGET_DEVICE" "product" "ro.build.display.id" "${D_ID} QuantumRom V-${VERSION}.1.1"
 
 BUILD_IMG "$FIRM_DIR/$TARGET_DEVICE" "all" "$OUTPUT_FILESYSTEM" "$OUT_DIR"

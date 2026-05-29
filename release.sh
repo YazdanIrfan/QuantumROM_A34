@@ -30,6 +30,9 @@ $GOFILE_LINK
 • Ported For: $STOCK_DEVICE
 • Ported From: $TARGET_DEVICE
 • Build Version: $VERSION
+• Android Version: $ANDROID_VERSION
+• One UI Version: $ONE_UI_VERSION
+• CPU ABILIST: $CPU_ABILIST
 
 #### ⚙️ Build Options:
 • Filesystem: $OUTPUT_FILESYSTEM

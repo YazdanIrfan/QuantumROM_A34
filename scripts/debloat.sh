@@ -37,7 +37,7 @@ CARRIER_APPS=(
 "SKTFindLostPhone" "SKTHiddenMenu" "SKTMemberShip"
 "SKTOneStore" "SKTFindLostPhoneApp"
 "TPhoneOnePackage" "TPhoneSetup" "TService"
-"UsimRegistrationKOR"
+"UsimRegistrationKOR" "HpsAgreement_new" "KTAuth_Stub"
 )
 
 # =========================
@@ -205,8 +205,7 @@ KICK() {
             target="$base/$app"
 
             if [[ -d "$target" ]]; then
-                rm -rf "$target" || \
-                echo -e "${RED}[WARN] Failed: $target${NC}"
+                rm -rf "$target" || echo -e "[WARN] Failed to delete $target"
             fi
 
         done
@@ -239,12 +238,27 @@ DEBLOAT() {
 
     REMOVE_ESIM_FILES "$DIR"
     REMOVE_FABRIC_CRYPTO "$DIR"
+    echo -e "Debloating apps and files."
 
-    echo "- Cleaning leftover files..."
 
-    rm -rf "$DIR/system/system/hidden"
-    rm -rf "$DIR/system/system/preload"
-    rm -rf "$DIR/product/app/YouTube/oat"
+    echo -e "- Deleting unnecessary files and folders."
+    # rm -rf "$EXTRACTED_FIRM_DIR/system/system/app"/SamsungTTS*
+    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/init/boot-image.bprof"
+    rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/init/boot-image.prof"
+    rm -rf "$EXTRACTED_FIRM_DIR/system/system/hidden"
+    rm -rf "$EXTRACTED_FIRM_DIR/system/system/preload"
+	# rm -rf "$EXTRACTED_FIRM_DIR/system/system/etc/mediasearch"
+	# rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app/MediaSearch"
+	# rm -rf "$EXTRACTED_FIRM_DIR/system/system/priv-app"/GameDriver-*
+	rm -rf "$EXTRACTED_FIRM_DIR/system/system/skt"
+	# rm -rf "$EXTRACTED_FIRM_DIR/system/system/tts"
+	# rm -rf "$EXTRACTED_FIRM_DIR/product/app/Gmail2/oat"
+    # rm -rf "$EXTRACTED_FIRM_DIR/product/app/Maps/oat"
+	# rm -rf "$EXTRACTED_FIRM_DIR/product/app/SpeechServicesByGoogle/oat"
+	rm -rf "$EXTRACTED_FIRM_DIR/product/app/YouTube/oat"
+	# rm -rf "$EXTRACTED_FIRM_DIR/product/priv-app"/HotwordEnrollment*
 
     echo -e "${YELLOW}Debloat completed.${NC}"
 }
+
+
