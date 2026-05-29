@@ -2774,6 +2774,141 @@ SAFE_INTEGRITY_SPOOFER() {
     echo -e "${YELLOW}Safe Integrity Spoofer Applied Successfully.${NC}"
 }
 
+
+
+ENABLE_GALAXY_BUDS_UHQ() {
+
+    echo " "
+    echo -e "${YELLOW}Enabling UHQ Audio...${NC}"
+
+    local SYSTEM_BUILD="$WORK_DIR/system/system/build.prop"
+    local PRODUCT_BUILD="$WORK_DIR/product/etc/build.prop"
+    local VENDOR_BUILD="$WORK_DIR/vendor/build.prop"
+
+    local FLOATING="$WORK_DIR/system/system/etc/floating_feature.xml"
+
+    # =========================================
+    # Helper
+    # =========================================
+
+    UPDATE_PROP() {
+        local FILE="$1"
+        local PROP="$2"
+        local VALUE="$3"
+
+        [ ! -f "$FILE" ] && return
+
+        sed -i "/^${PROP}=.*/d" "$FILE"
+        echo "${PROP}=${VALUE}" >> "$FILE"
+    }
+
+    # =========================================
+    # Apply Safe Samsung Audio Props
+    # =========================================
+
+    for FILE in \
+        "$SYSTEM_BUILD" \
+        "$PRODUCT_BUILD" \
+        "$VENDOR_BUILD"
+    do
+        [ ! -f "$FILE" ] && continue
+
+        # =========================================
+        # Samsung UHQ
+        # =========================================
+
+        UPDATE_PROP "$FILE" \
+        "ro.audio.support_uhq" \
+        "true"
+
+        UPDATE_PROP "$FILE" \
+        "ro.config.media_vol_steps" \
+        "150"
+
+        # =========================================
+        # Samsung Audio Stability
+        # =========================================
+
+        UPDATE_PROP "$FILE" \
+        "persist.audio.fluence.voicecall" \
+        "true"
+
+        UPDATE_PROP "$FILE" \
+        "persist.audio.fluence.voicerec" \
+        "true"
+
+        UPDATE_PROP "$FILE" \
+        "persist.audio.fluence.speaker" \
+        "true"
+
+    done
+
+    # =========================================
+    # Samsung Floating Features
+    # =========================================
+
+    if [ -f "$FLOATING" ]; then
+
+        # =========================================
+        # UHQ Audio
+        # =========================================
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING" \
+        "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_UHQ_UPSCALER" \
+        "TRUE"
+
+        # =========================================
+        # Samsung Seamless Codec
+        # =========================================
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING" \
+        "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_SAMSUNG_SEAMLESS_CODEC" \
+        "TRUE"
+
+        # =========================================
+        # BLE Audio
+        # =========================================
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING" \
+        "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_BLE_AUDIO" \
+        "TRUE"
+
+        # =========================================
+        # Dolby Atmos
+        # =========================================
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING" \
+        "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_DOLBY_AUDIO" \
+        "TRUE"
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING" \
+        "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_DOLBY_GAME" \
+        "TRUE"
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING" \
+        "SEC_FLOATING_FEATURE_AUDIO_SUPPORT_DOLBY_SPATIAL_AUDIO" \
+        "TRUE"
+
+        # =========================================
+        # Samsung SoundAlive
+        # =========================================
+
+        UPDATE_FLOATING_FEATURE \
+        "$FLOATING" \
+        "SEC_FLOATING_FEATURE_AUDIO_CONFIG_SOUNDALIVE_VERSION" \
+        "eq_custom,adapt,uhq"
+
+    fi
+
+    echo -e "${YELLOW}UHQ Audio Enabled.${NC}"
+}
+
 DECODE_OMC() {
     echo " "
 
