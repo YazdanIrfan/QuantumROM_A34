@@ -15,6 +15,11 @@ DEBLOAT_APPS=(
 "SOAgent77" "ARCore" "ARDrawing" "ARZone" "BGMProvider"
 "SingleTakeService" "BixbyWakeup" "BlockchainBasicKit"
 "Cameralyzer" "DictDiotekForSec" "EasymodeContactsWidget81"
+# Aura / AppCloud bloat
+"com.aura.oobe.samsung.gl"
+"com.aura.oobe.samsung"
+"com.ironsource.appcloud.oobe"
+
 "Fast" "FunModeSDK" "GearManagerStub" "KidsHome_Installer"
 "LinkSharing_v11" "LiveDrawing" "MAPSAgent"
 "MinusOnePage" "MoccaMobile" "Netflix_stub"
