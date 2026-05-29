@@ -146,6 +146,12 @@ MISC_SERVICES=(
 "vexfwk_service"
 "VexScanner"
 "MyGalaxyService"
+
+# Ultra Data Saving / Max VPN
+"UltraDataSaving_O"
+"UDS"
+"MaxVPN"
+"SamsungMax"
 )
 
 # =========================
