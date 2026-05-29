@@ -2318,61 +2318,58 @@ ENABLE_INS_MULTILINGUAL() {
     echo " "
 
     if [ "$#" -ne 1 ]; then
-        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
+        echo "Usage: ENABLE_INS_MULTILINGUAL <TARGET_ROM_DIR>"
         return 1
     fi
 
-    local EXTRACTED_FIRM_DIR="$1"
+    local TARGET_ROM_DIR="$1"
 
-    echo -e "${YELLOW}Enabling INS multilingual support.${NC}"
+    echo -e "${YELLOW}Enabling INS/OXM multilingual support.${NC}"
 
-    #========================================#
-    # Partition Detection
-    #========================================#
+    #================================================#
+    # Detect partitions
+    #================================================#
 
-    local SYSTEM_DIR=""
-    local PRODUCT_DIR=""
-    local OMC_DIR=""
+    local SYSTEM=""
+    local PRODUCT=""
+    local OMC=""
 
-    if [ -d "$EXTRACTED_FIRM_DIR/system/system" ]; then
-        SYSTEM_DIR="$EXTRACTED_FIRM_DIR/system/system"
+    if [ -d "$TARGET_ROM_DIR/system/system" ]; then
+        SYSTEM="$TARGET_ROM_DIR/system/system"
     else
-        SYSTEM_DIR="$EXTRACTED_FIRM_DIR/system"
+        SYSTEM="$TARGET_ROM_DIR/system"
     fi
 
-    [ -d "$EXTRACTED_FIRM_DIR/product" ] \
-        && PRODUCT_DIR="$EXTRACTED_FIRM_DIR/product"
+    [ -d "$TARGET_ROM_DIR/product" ] && PRODUCT="$TARGET_ROM_DIR/product"
 
-    if [ -d "$SYSTEM_DIR/omc/INS" ]; then
-        OMC_DIR="$SYSTEM_DIR/omc/INS"
-    elif [ -d "$PRODUCT_DIR/omc/INS" ]; then
-        OMC_DIR="$PRODUCT_DIR/omc/INS"
+    if [ -d "$SYSTEM/omc/INS" ]; then
+        OMC="$SYSTEM/omc/INS"
+    elif [ -d "$PRODUCT/omc/INS" ]; then
+        OMC="$PRODUCT/omc/INS"
     fi
 
-    #========================================#
-    # Locale List
-    #========================================#
+    #================================================#
+    # Samsung INS REAL supported locale set
+    # (UI-safe + CSC-safe + keyboard-safe)
+    #================================================#
 
     local CSC_LANG_LIST="\
-en_US,hi_IN,bn_IN,ta_IN,\
-te_IN,ml_IN,kn_IN,mr_IN,\
-gu_IN,pa_IN,ur_PK,tr_TR,\
-ar_SA,de_DE,es_ES,fr_FR,\
-id_ID,it_IT,ja_JP,ko_KR,\
-pl_PL,pt_BR,ru_RU,th_TH,\
-uk_UA,vi_VN,zh_CN,zh_TW"
+en_US,en_GB,en_IN,\
+hi_IN,bn_IN,ta_IN,te_IN,ml_IN,kn_IN,mr_IN,gu_IN,pa_IN,ur_PK,as_IN,or_IN,ne_NP,si_LK,\
+tr_TR,ar_SA,fa_IR,he_IL,\
+de_DE,es_ES,fr_FR,it_IT,pt_BR,pt_PT,nl_NL,pl_PL,cs_CZ,sk_SK,ro_RO,hu_HU,el_GR,\
+sr_RS,hr_HR,sl_SI,bg_BG,mk_MK,sq_AL,uk_UA,ru_RU,be_BY,lt_LT,lv_LV,et_EE,\
+da_DK,sv_SE,no_NO,fi_FI,is_IS,\
+id_ID,ms_MY,tl_PH,vi_VN,th_TH,km_KH,lo_LA,my_MM,\
+ja_JP,ko_KR,zh_CN,zh_TW,zh_HK"
 
-    #========================================#
-    # Patch CSC XML
-    #========================================#
+    #================================================#
+    # CSC PATCH (INS/OXM standard)
+    #================================================#
 
-    PATCH_CSC_FILE() {
-
+    PATCH_CSC_XML() {
         local FILE="$1"
-
         [ ! -f "$FILE" ] && return
-
-        echo -e "- Patching $(basename "$FILE")"
 
         local KEYS=(
             "CscFeature_Common_SupportLocale"
@@ -2381,158 +2378,93 @@ uk_UA,vi_VN,zh_CN,zh_TW"
         )
 
         for key in "${KEYS[@]}"; do
-
-            if grep -q "<${key}>.*</${key}>" "$FILE"; then
-
-                sed -i \
-                    "s|<${key}>.*</${key}>|<${key}>${CSC_LANG_LIST}</${key}>|g" \
-                    "$FILE"
-
-            else
-
-                sed -i \
-                    "/<\/FeatureSet>/i\    <${key}>${CSC_LANG_LIST}</${key}>" \
-                    "$FILE"
-            fi
+            sed -i "/<${key}>/d" "$FILE"
+            sed -i "/<\/FeatureSet>/i\    <${key}>${CSC_LANG_LIST}</${key}>" "$FILE"
         done
 
-        # Remove restrictions
+        # Remove all Samsung restrictions
         sed -i '/DisableLanguage/d' "$FILE"
         sed -i '/RemoveLanguageList/d' "$FILE"
         sed -i '/language_restricted/d' "$FILE"
+        sed -i '/locale_restricted/d' "$FILE"
     }
 
-    find \
-        "$SYSTEM_DIR" \
-        "$PRODUCT_DIR" \
-        "$OMC_DIR" \
+    find "$SYSTEM" "$PRODUCT" "$OMC" \
         2>/dev/null \
-        -type f \( \
-            -name "others.xml" -o \
-            -name "cscfeature.xml" -o \
-            -name "customer.xml" \
-        \) | while read -r FILE; do
-
-        PATCH_CSC_FILE "$FILE"
-
+        -type f \( -name "others.xml" -o -name "cscfeature.xml" -o -name "customer.xml" \) | while read -r FILE; do
+        PATCH_CSC_XML "$FILE"
     done
 
-    #========================================#
-    # locale_config.xml
-    #========================================#
+    #================================================#
+    # locale_config.xml (NO framework dependency)
+    #================================================#
 
-    PATCH_LOCALE_CONFIG() {
-
+    PATCH_LOCALE_XML() {
         local FILE="$1"
-
         [ ! -f "$FILE" ] && return
 
         local LOCALES=(
-            "tr-TR"
-            "ar-SA"
-            "de-DE"
-            "es-ES"
-            "fr-FR"
-            "ru-RU"
-            "ja-JP"
-            "ko-KR"
-            "zh-CN"
-            "zh-TW"
+            en-US en-GB en-IN
+            hi-IN bn-IN ta-IN te-IN ml-IN kn-IN mr-IN gu-IN pa-IN ur-PK as-IN or-IN ne-NP si-LK
+            tr-TR ar-SA fa-IR he-IL
+            de-DE es-ES fr-FR it-IT pt-BR pt-PT nl-NL pl-PL cs-CZ sk-SK ro-RO hu-HU el-GR
+            sr-RS hr-HR sl-SI bg-BG mk-MK sq-AL uk-UA ru-RU be-BY lt-LT lv-LV et-EE
+            da-DK sv-SE no-NO fi-FI is-IS
+            id-ID ms-MY tl-PH vi-VN th-TH km-KH lo-LA my-MM
+            ja-JP ko-KR zh-CN zh-TW zh-HK
         )
 
         for locale in "${LOCALES[@]}"; do
-
-            if ! grep -q "$locale" "$FILE"; then
-
-                sed -i \
-                    "/<\/locale-config>/i\    <locale name=\"$locale\"\/>" \
-                    "$FILE"
-
-                echo -e "- Added locale $locale"
-            fi
+            grep -q "$locale" "$FILE" || \
+            sed -i "/<\/locale-config>/i\    <locale name=\"$locale\"\/>" "$FILE"
         done
     }
 
-    PATCH_LOCALE_CONFIG \
-        "$SYSTEM_DIR/etc/locale_config.xml"
+    PATCH_LOCALE_XML "$SYSTEM/etc/locale_config.xml"
+    PATCH_LOCALE_XML "$PRODUCT/etc/locale_config.xml"
 
-    PATCH_LOCALE_CONFIG \
-        "$PRODUCT_DIR/etc/locale_config.xml"
-
-    #========================================#
-    # Floating Features
-    #========================================#
+    #================================================#
+    # Floating features (real INS unlock flags)
+    #================================================#
 
     local FF_FILE=""
-
-    if [ -f "$SYSTEM_DIR/etc/floating_feature.xml" ]; then
-        FF_FILE="$SYSTEM_DIR/etc/floating_feature.xml"
-    elif [ -f "$PRODUCT_DIR/etc/floating_feature.xml" ]; then
-        FF_FILE="$PRODUCT_DIR/etc/floating_feature.xml"
+    if [ -f "$SYSTEM/etc/floating_feature.xml" ]; then
+        FF_FILE="$SYSTEM/etc/floating_feature.xml"
+    elif [ -f "$PRODUCT/etc/floating_feature.xml" ]; then
+        FF_FILE="$PRODUCT/etc/floating_feature.xml"
     fi
 
     if [ -n "$FF_FILE" ]; then
-
-        UPDATE_FLOATING_FEATURE \
-            "$FF_FILE" \
-            "SEC_FLOATING_FEATURE_COMMON_SUPPORT_LANGUAGE_PACK" \
-            "TRUE"
-
-        UPDATE_FLOATING_FEATURE \
-            "$FF_FILE" \
-            "SEC_FLOATING_FEATURE_COMMON_CONFIG_LOCALE" \
-            "multi"
-
-        UPDATE_FLOATING_FEATURE \
-            "$FF_FILE" \
-            "SEC_FLOATING_FEATURE_SIP_SUPPORT_LANGUAGES" \
-            "all"
-
-        echo -e "- Floating features updated."
+        UPDATE_FLOATING_FEATURE "$FF_FILE" "SEC_FLOATING_FEATURE_COMMON_SUPPORT_LANGUAGE_PACK" "TRUE"
+        UPDATE_FLOATING_FEATURE "$FF_FILE" "SEC_FLOATING_FEATURE_COMMON_CONFIG_LOCALE" "multi"
+        UPDATE_FLOATING_FEATURE "$FF_FILE" "SEC_FLOATING_FEATURE_SIP_SUPPORT_LANGUAGES" "all"
+        UPDATE_FLOATING_FEATURE "$FF_FILE" "SEC_FLOATING_FEATURE_SIP_SUPPORT_TURKISH" "TRUE"
+        UPDATE_FLOATING_FEATURE "$FF_FILE" "SEC_FLOATING_FEATURE_SIP_SUPPORT_ARABIC" "TRUE"
+        UPDATE_FLOATING_FEATURE "$FF_FILE" "SEC_FLOATING_FEATURE_SIP_SUPPORT_RUSSIAN" "TRUE"
+        UPDATE_FLOATING_FEATURE "$FF_FILE" "SEC_FLOATING_FEATURE_SIP_SUPPORT_HINDI" "TRUE"
     fi
 
-    #========================================#
-    # Preserve Language Resources
-    #========================================#
+    #================================================#
+    # Keyboard unlock (no framework needed)
+    #================================================#
 
-    local LANG_COUNT=0
-
-    LANG_COUNT=$(find \
-        "$SYSTEM_DIR" \
-        "$PRODUCT_DIR" \
-        2>/dev/null \
-        -type d -name "values-*" | wc -l)
-
-    echo -e "- Detected $LANG_COUNT language resource folders."
-
-    if [ "$LANG_COUNT" -lt 80 ]; then
-        echo -e "${RED}- WARNING:${NC} ROM may be language stripped."
-    fi
-
-    #========================================#
-    # Samsung Keyboard
-    #========================================#
-
-    find \
-        "$SYSTEM_DIR" \
-        "$PRODUCT_DIR" \
-        2>/dev/null \
-        -type d \( \
-            -name "HoneyBoard*" -o \
-            -name "SamsungIME*" \
-        \) | while read -r KB; do
-
+    find "$SYSTEM" "$PRODUCT" \
+        -type d \( -name "SamsungIME*" -o -name "HoneyBoard*" \) | while read -r KB; do
         mkdir -p "$KB/assets/languages"
-
         touch "$KB/assets/languages/all_languages"
-
     done
 
-    #========================================#
-    # Done
-    #========================================#
+    #================================================#
+    # Hard override restrictions
+    #================================================#
 
-    echo -e "${YELLOW}INS multilingual support enabled.${NC}"
+    find "$SYSTEM" "$PRODUCT" "$OMC" \
+        -type f \( -name "*.xml" -o -name "*.prop" -o -name "*.conf" \) 2>/dev/null | while read -r FILE; do
+        sed -i 's/locale_restricted=true/locale_restricted=false/g' "$FILE"
+        sed -i 's/language_restricted=true/language_restricted=false/g' "$FILE"
+    done
+
+    echo -e "${YELLOW}INS multilingual unlocked.${NC}"
 }
 
 # =========================================
