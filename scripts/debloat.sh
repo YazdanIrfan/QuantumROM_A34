@@ -20,11 +20,9 @@ DEBLOAT_APPS=(
 "com.aura.oobe.samsung"
 "com.ironsource.appcloud.oobe"
 
-"Fast" "FunModeSDK" "GearManagerStub" "KidsHome_Installer"
-"LinkSharing_v11" "LiveDrawing" "MAPSAgent"
+"Fast" "FunModeSDK" "GearManagerStub" "KidsHome_Installer" "LiveDrawing" "MAPSAgent"
 "MinusOnePage" "MoccaMobile" "Netflix_stub"
-"ParentalCare" "PhotoTable" "SmartReminder" "SmartSwitchStub"
-"UniversalMDMClient" "VideoEditorLite_Dream_N"
+"ParentalCare" "PhotoTable" "SmartReminder" "VideoEditorLite_Dream_N"
 "VoiceAccess" "VTCameraSetting"
 "WebManual" "WifiGuider" "AutomationTest_FB" "FactoryTestProvider"
 )
@@ -74,21 +72,13 @@ SAMSUNG_APPS=(
 # SAMSUNG AI / SMART
 # =========================
 SAMSUNG_AI=(
-"LiveTranscribe"
-"Bixby"
-"BixbyInterpreter"
-"SettingsBixby"
 "SmartEye"
-"SmartPush"
-"SmartPush_64"
-"SmartTouchCall"
 )
 
 # =========================
 # GOOGLE APPS
 # =========================
 GOOGLE_APPS=(
-"SpeechServicesByGoogle"
 
 # Removed Google Apps
 "Maps"
@@ -100,8 +90,6 @@ GOOGLE_APPS=(
 "SearchSelector"
 "YouTube"
 "YouTubeStub"
-
-# Newly Added
 "Chrome"
 "Gmail2"
 "GlanceOnSamsung"
@@ -127,21 +115,17 @@ HARDWARE_DRIVERS=(
 # MISC SERVICES
 # =========================
 MISC_SERVICES=(
-"AuthFramework"
-"FotaAgent"
 "HashTagService"
+"FotaAgent"
 "LedCoverService"
 "MemorySaver_O_Refresh"
-"OMCAgent5"
 "OneStoreService"
 "FactoryAirCommandManager"
 "SOAgent7"
 "SOAgent75"
 "SOAgent76"
 "SolarAudio-service"
-"SPPPushClient"
 "SumeNNService"
-"SVoiceIME"
 "SystemUpdate"
 "TADownloader"
 "TalkbackSE"
