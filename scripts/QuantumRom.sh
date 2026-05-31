@@ -495,10 +495,11 @@ EXTRACT_FIRMWARE_IMG() {
 
 	    rm -rf "$EXTRACTED_FIRM_DIR"/*.img
 
-		if [[ -n "$GITHUB_ENV" ]]; then
-            echo "ANDROID_VERSION=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.system.build.version.release)" >> "$GITHUB_ENV"
-            echo "ONE_UI_VERSION=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.build.version.oneui)" >> "$GITHUB_ENV"
-            echo "CPU_ABILIST=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" ro.system.product.cpu.abilist)" >> "$GITHUB_ENV"
+		if [ -n "$GITHUB_ENV" ]; then
+            echo "ANDROID_VERSION=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.system.build.version.release")" >> "$GITHUB_ENV"
+            echo "ONE_UI_VERSION=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.build.version.oneui")" >> "$GITHUB_ENV"
+            echo "CPU_ABILIST=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.system.product.cpu.abilist")" >> "$GITHUB_ENV"
+	        echo "BRAND=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" "Build.BRAND")" >> "$GITHUB_ENV"
         fi
 
     else

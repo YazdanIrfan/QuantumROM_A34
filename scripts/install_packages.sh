@@ -10,7 +10,7 @@ install_packages() {
     # Debian / Ubuntu
     if [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
         echo "Installing for Ubuntu/Debian..."
-        apt update
+        sudo apt update
 		sudo apt install -y p7zip-full lz4 liblz4-1 liblz4-dev libzstd1 libzstd-dev build-essential android-sdk-libsparse-utils f2fs-tools fuse2fs fuse e2fsprogs python3 python3-pip zipalign unzip openjdk-17-jdk jq perl xxd kmod erofs-utils
 		sudo apt autoremove -y
 
