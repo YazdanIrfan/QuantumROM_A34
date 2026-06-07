@@ -1,0 +1,3 @@
+# rscmgr rc file
+on property:sys.readahead.resource=1
+    readahead /system/bin/surfaceflinger --fully
