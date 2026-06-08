@@ -2102,6 +2102,7 @@ ADD_SAMSUNG_FLAGSHIP_APPS() {
 	echo -e "- Adding full OneUI and important apps."
 	if [ ! -d "$EXTRACTED_FIRM_DIR/product/priv-app/AiWallpaper" ]; then
         cp -rfa "$(pwd)/QuantumROM/Mods/Apps/AiWallpaper/"* "$EXTRACTED_FIRM_DIR/"
+    fi
     export PRODUCT_BRAND=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.product.system.brand")
     export ANDROID_VERSION=$(GET_PROP "$EXTRACTED_FIRM_DIR" "system" "ro.system.build.version.release")
 	
