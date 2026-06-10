@@ -3061,8 +3061,8 @@ ENABLE_GALAXY_BUDS_UHQ() {
 DECODE_OMC() {
     echo " "
 
-    if [ "$#" -ne 1 ]; then
-        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR>"
+    if [ "$#" -ne 2 ]; then
+        echo -e "Usage: ${FUNCNAME[0]} <EXTRACTED_FIRM_DIR> <OUT_DIR>"
         return 1
     fi
 
@@ -3074,15 +3074,16 @@ DECODE_OMC() {
     fi
 
     local FW_DIR="$1"
+	local OUT_DIR="$2"
 
     if [ -d "${FW_DIR}/odm/etc/omc" ]; then
-        rm -rf "${WORK_DIR}/odm_decoded"
+        rm -rf "${OUT_DIR}/odm_decoded"
 
-        echo "Decoding odm/etc/omc."
+        echo "Decoding odm/etc/omc in ${OUT_DIR}"
 
         java -jar "$omc_decoder" \
             -i "${FW_DIR}/odm/etc/omc" \
-            -o "${WORK_DIR}/odm_decoded" \
+            -o "${OUT_DIR}/odm_decoded" \
             >/dev/null 2>&1 || {
                 echo -e "Failed decoding odm/etc/omc."
             }
@@ -3091,13 +3092,13 @@ DECODE_OMC() {
     fi
 
     if [ -d "${FW_DIR}/optics" ]; then
-        rm -rf "${WORK_DIR}/optics_decoded"
+        rm -rf "${OUT_DIR}/optics_decoded"
 
-        echo "Decoding optics."
+        echo "Decoding optics in ${OUT_DIR}"
 
         java -jar "$omc_decoder" \
             -i "${FW_DIR}/optics" \
-            -o "${WORK_DIR}/optics_decoded" \
+            -o "${OUT_DIR}/optics_decoded" \
             >/dev/null 2>&1 || {
                 echo -e "Failed decoding optics."
             }
